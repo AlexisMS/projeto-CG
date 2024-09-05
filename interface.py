@@ -52,10 +52,10 @@ class NewObjectDialog(QWidget):
         self.setWindowTitle("Novo Objeto")
     
     @Slot()
-    def new_Object(self):
-        logging.info("botão clicado")
+    def new_Object(self):        
         scene.addLine(QLine(int(self.x1.text()), int(self.y1.text()), int(self.x2.text()), int(self.y2.text())))
-        scene.update()
+        #scene.update()
+        logging.info("reta criada em ("+self.x1.text()+","+self.y1.text()+"), ("+self.x2.text()+","+self.y2.text()+")")
 
 class SubWindows():
     def open_NewObjectDialog(self, checked):
