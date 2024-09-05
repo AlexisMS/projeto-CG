@@ -73,6 +73,8 @@ if __name__ == '__main__':
     #features
     viewport = QGraphicsView(scene)
     viewport.setFixedSize(QSize(800,600))
+    viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)
+    viewport.setSceneRect(0,0, 780,580)
 
     object_list = QListWidget()
     for i in range(6):
