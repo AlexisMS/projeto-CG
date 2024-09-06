@@ -1,7 +1,7 @@
 import sys, logging
 from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit
+from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -62,6 +62,25 @@ class SubWindows():
         self.new_window = NewObjectDialog()
         self.new_window.show()
 
+class Functions():
+    def zoom_In():
+        pass
+
+    def zoom_Out():
+        pass
+
+    def nav_left():
+        pass
+
+    def nav_right():
+        pass
+
+    def nav_up():
+        pass
+
+    def nav_down():
+        pass
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
@@ -69,6 +88,7 @@ if __name__ == '__main__':
     scene.setBackgroundBrush(QColor('grey'))
 
     subWindows = SubWindows()
+    functions = Functions()
 
     #features
     viewport = QGraphicsView(scene)
@@ -90,13 +110,56 @@ if __name__ == '__main__':
     logging.getLogger().addHandler(logTextBox)
     logging.getLogger().setLevel(logging.DEBUG)
 
-    #layouts
-    left_menu_layout = QVBoxLayout()    
-    left_menu_layout.addWidget(create_object_button)
-    left_menu_layout.addWidget(object_list)
-    left_menu = QGroupBox("Objetos")
+    # Inicio dos layouts
+    # Layout do menu dos objetos
+    create_object_button = QPushButton("Novo Objeto")
+    create_object_button.clicked.connect(subWindows.open_NewObjectDialog)
+
+    left_objects_layout = QVBoxLayout()    
+    left_objects_layout.addWidget(create_object_button)
+    left_objects_layout.addWidget(object_list)
+    left_objects_menu = QGroupBox("Objetos")
+    left_objects_menu.setLayout(left_objects_layout)
+
+    # Layout do menu de zooms
+    zoom_in_button = QPushButton("+")
+    zoom_out_button = QPushButton("-")
+    zoom_in_button.clicked.connect(functions.zoom_In)
+    zoom_out_button.clicked.connect(functions.zoom_Out)
+
+    left_zoom_layout = QHBoxLayout()
+    left_zoom_layout.addWidget(zoom_in_button)
+    left_zoom_layout.addWidget(zoom_out_button)
+    left_zoom_menu = QGroupBox("Zoom")
+    left_zoom_menu.setLayout(left_zoom_layout)
+
+    # Layout do menu de navegação
+    nav_left_button = QPushButton("left")
+    nav_right_button = QPushButton("right")
+    nav_up_button = QPushButton("up")
+    nav_down_button = QPushButton("down")
+    nav_left_button.clicked.connect(functions.nav_left)
+    nav_right_button.clicked.connect(functions.nav_right)
+    nav_up_button.clicked.connect(functions.nav_up)
+    nav_down_button.clicked.connect(functions.nav_down)
+
+    left_nav_layout = QGridLayout()
+    left_nav_layout.addWidget(nav_up_button, 1, 2)
+    left_nav_layout.addWidget(nav_left_button, 2, 1)
+    left_nav_layout.addWidget(nav_right_button, 2, 3)
+    left_nav_layout.addWidget(nav_down_button, 3, 2)
+    left_nav_menu = QGroupBox("Navegação")
+    left_nav_menu.setLayout(left_nav_layout)
+
+    # Layout do menu a esquerda
+    left_menu_layout = QVBoxLayout()
+    left_menu_layout.addWidget(left_objects_menu)
+    left_menu_layout.addWidget(left_zoom_menu)
+    left_menu_layout.addWidget(left_nav_menu)
+    left_menu = QGroupBox()
     left_menu.setLayout(left_menu_layout)
 
+    # Layout do viewport
     viewport_layout = QVBoxLayout()
     viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
     viewport_layout.addWidget(viewport)
