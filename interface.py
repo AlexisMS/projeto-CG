@@ -1,6 +1,6 @@
 import sys, logging
 from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPolygon
 from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit
 
 class QTextEditLogger(logging.Handler):
@@ -17,46 +17,52 @@ class NewObjectDialog(QWidget):
     def __init__(self):
         super().__init__()
 
-        x1_label = QLabel("X1")
-        self.x1 = QLineEdit()
-        x2_label = QLabel("X2")
-        self.x2 = QLineEdit()
-        y1_label = QLabel("Y1")
-        self.y1 = QLineEdit()
-        y2_label = QLabel("Y2")
-        self.y2 = QLineEdit()
-        self.confirm = QPushButton("Criar")
-        self.confirm.clicked.connect(self.new_Object)
-        
-        line1_layout = QHBoxLayout()
-        line1_layout.addWidget(x1_label)
-        line1_layout.addWidget(self.x1)
-        line1_layout.addWidget(y1_label)
-        line1_layout.addWidget(self.y1)
-        line1 = QWidget()
-        line1.setLayout(line1_layout)
+        self.points = []
 
-        line2_layout = QHBoxLayout()
-        line2_layout.addWidget(x2_label)
-        line2_layout.addWidget(self.x2)
-        line2_layout.addWidget(y2_label)
-        line2_layout.addWidget(self.y2)
-        line2 = QWidget()
-        line2.setLayout(line2_layout)
+        xx_label = QLabel("X1")
+        self.xx = QLineEdit()
+        yy_label = QLabel("Y1")
+        self.yy = QLineEdit()
+
+        self.buttonAddPoint= QPushButton("Adicionar ponto")
+        self.buttonAddPoint.clicked.connect(self.new_Point)
+        self.buttonCreateObject = QPushButton("Criar objeto")
+        self.buttonCreateObject.clicked.connect(self.new_Object)
+        
+        line_layout = QHBoxLayout()
+        line_layout.addWidget(xx_label)
+        line_layout.addWidget(self.xx)
+        line_layout.addWidget(yy_label)
+        line_layout.addWidget(self.yy)
+        line = QWidget()
+        line.setLayout(line_layout)
 
         layout = QVBoxLayout()
-        layout.addWidget(line1)
-        layout.addWidget(line2)
-        layout.addWidget(self.confirm)
+        layout.addWidget(line)
+        layout.addWidget(self.buttonAddPoint)
+        layout.addWidget(self.buttonCreateObject)
         self.setLayout(layout)
         self.setWindowTitle("Novo Objeto")
     
     @Slot()
-    def new_Object(self):        
-        scene.addLine(QLine(int(self.x1.text()), int(self.y1.text()), int(self.x2.text()), int(self.y2.text())))
-        #scene.update()
-        logging.info("reta criada em ("+self.x1.text()+","+self.y1.text()+"), ("+self.x2.text()+","+self.y2.text()+")")
+    def new_Point(self):
+        self.points.append(QPoint(int(self.xx.text()), int(self.yy.text())))
+        self.xx.clear()
+        self.yy.clear()
+    
+    @Slot()
+    def new_Object(self):
+        polygon = QPolygon(self.points)        
+        scene.addPolygon(polygon)
+ 
+        message = ("poligono criado em")
+        for p in self.points:
+            message += " (" +str(p.x())+ "," +str(p.y())+ ")"
 
+        logging.info(message)
+
+        self.close()
+    
 class SubWindows():
     def open_NewObjectDialog(self, checked):
         self.new_window = NewObjectDialog()
