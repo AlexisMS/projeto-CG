@@ -1,4 +1,5 @@
 import sys, logging
+from object import WireFrame
 from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot
 from PySide6.QtGui import QColor, QPolygon
 from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit
@@ -96,11 +97,12 @@ if __name__ == '__main__':
     subWindows = SubWindows()
     functions = Functions()
 
-    #features
+    # Viewport
     viewport = QGraphicsView(scene)
     viewport.setFixedSize(QSize(800,600))
     viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)
     viewport.setSceneRect(0,0, 780,580)
+
 
     object_list = QListWidget()
     for i in range(6):
@@ -108,38 +110,22 @@ if __name__ == '__main__':
         item.setTextAlignment(Qt.AlignCenter)
         object_list.addItem(item)
 
-    create_object_button = QPushButton("Novo Objeto")
-    create_object_button.clicked.connect(subWindows.open_NewObjectDialog)
-
     logTextBox = QTextEditLogger()
     logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     logging.getLogger().addHandler(logTextBox)
     logging.getLogger().setLevel(logging.DEBUG)
 
-    # Inicio dos layouts
-    # Layout do menu dos objetos
+    # Botão de criação de objetos
     create_object_button = QPushButton("Novo Objeto")
     create_object_button.clicked.connect(subWindows.open_NewObjectDialog)
 
-    left_objects_layout = QVBoxLayout()    
-    left_objects_layout.addWidget(create_object_button)
-    left_objects_layout.addWidget(object_list)
-    left_objects_menu = QGroupBox("Objetos")
-    left_objects_menu.setLayout(left_objects_layout)
-
-    # Layout do menu de zooms
+    # Botões reerentes a função de zoom
     zoom_in_button = QPushButton("+")
     zoom_out_button = QPushButton("-")
     zoom_in_button.clicked.connect(functions.zoom_In)
     zoom_out_button.clicked.connect(functions.zoom_Out)
 
-    left_zoom_layout = QHBoxLayout()
-    left_zoom_layout.addWidget(zoom_in_button)
-    left_zoom_layout.addWidget(zoom_out_button)
-    left_zoom_menu = QGroupBox("Zoom")
-    left_zoom_menu.setLayout(left_zoom_layout)
-
-    # Layout do menu de navegação
+    # Botões referentes a função de navegação
     nav_left_button = QPushButton("left")
     nav_right_button = QPushButton("right")
     nav_up_button = QPushButton("up")
@@ -149,6 +135,25 @@ if __name__ == '__main__':
     nav_up_button.clicked.connect(functions.nav_up)
     nav_down_button.clicked.connect(functions.nav_down)
 
+    # Inicio dos layouts
+    # Layout do menu dos objetos
+    # Contém a lista de objetos e botão de criar objetos
+    left_objects_layout = QVBoxLayout()    
+    left_objects_layout.addWidget(create_object_button)
+    left_objects_layout.addWidget(object_list)
+    left_objects_menu = QGroupBox("Objetos")
+    left_objects_menu.setLayout(left_objects_layout)
+
+    # Layout do menu de zooms
+    # Contém todos os botões de zoom
+    left_zoom_layout = QHBoxLayout()
+    left_zoom_layout.addWidget(zoom_in_button)
+    left_zoom_layout.addWidget(zoom_out_button)
+    left_zoom_menu = QGroupBox("Zoom")
+    left_zoom_menu.setLayout(left_zoom_layout)
+
+    # Layout do menu de navegação
+    # Contém todos os botões de navegação
     left_nav_layout = QGridLayout()
     left_nav_layout.addWidget(nav_up_button, 1, 2)
     left_nav_layout.addWidget(nav_left_button, 2, 1)
@@ -157,7 +162,8 @@ if __name__ == '__main__':
     left_nav_menu = QGroupBox("Navegação")
     left_nav_menu.setLayout(left_nav_layout)
 
-    # Layout do menu a esquerda
+    # Layout do menu
+    # Contém lista de objetos e funções de zoom e navegação
     left_menu_layout = QVBoxLayout()
     left_menu_layout.addWidget(left_objects_menu)
     left_menu_layout.addWidget(left_zoom_menu)
@@ -166,23 +172,30 @@ if __name__ == '__main__':
     left_menu.setLayout(left_menu_layout)
 
     # Layout do viewport
+    # Contém a parte gráfica do viewport
     viewport_layout = QVBoxLayout()
     viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
     viewport_layout.addWidget(viewport)
     main_widget = QGroupBox("Viewport")
     main_widget.setLayout(viewport_layout)
 
+    # Layout do log
+    # Contém a paret textual do log
     log_layout = QVBoxLayout()
     log_layout.addWidget(logTextBox.widget)
     log_widget = QGroupBox("Logs")
     log_widget.setLayout(log_layout)
 
+    # Layout da interface de usuario
+    # Contém o menu de funções e objetos 
     main_ui_layout = QHBoxLayout()
     main_ui_layout.addWidget(left_menu, 1)
     main_ui_layout.addWidget(main_widget, 3)
     main_ui = QWidget()    
     main_ui.setLayout(main_ui_layout)
 
+    # Janela principal
+    # Contém interface de usuario e parte de log
     window_layout = QVBoxLayout()
     window_layout.addWidget(main_ui, 10)
     window_layout.addWidget(log_widget, 1)
