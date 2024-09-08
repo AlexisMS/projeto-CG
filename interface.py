@@ -1,6 +1,6 @@
 import sys, logging
 from object import WireFrame
-from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot
+from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect
 from PySide6.QtGui import QColor, QPolygon
 from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit, QSpinBox
 
@@ -83,24 +83,17 @@ class SubWindows():
         self.new_window = NewObjectDialog(create_object_point_amount.value())
         self.new_window.show()
 
-class Functions():
-    def zoom_In():
-        pass
+def nav_left():
+    pass
 
-    def zoom_Out():
-        pass
+def nav_right():
+    pass
 
-    def nav_left():
-        pass
+def nav_up():
+    pass
 
-    def nav_right():
-        pass
-
-    def nav_up():
-        pass
-
-    def nav_down():
-        pass
+def nav_down():
+    pass
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -109,15 +102,13 @@ if __name__ == '__main__':
     scene.setBackgroundBrush(QColor('grey'))
 
     subWindows = SubWindows()
-    functions = Functions()
-
+    
     # Viewport
     viewport = QGraphicsView(scene)
     viewport.setFixedSize(QSize(800,600))
-    viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)
-    viewport.setSceneRect(0,0, 780,580)
-
-
+    viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
+    viewport.setSceneRect(QRect(0,0, 780,580))
+    
     object_list = QListWidget()
     for i in range(6):
         item = QListWidgetItem(f"Objeto {i}")
@@ -141,21 +132,23 @@ if __name__ == '__main__':
     create_object_button = QPushButton("Novo Objeto")
     create_object_button.clicked.connect(subWindows.open_NewObjectDialog)
 
-    # Botões reerentes a função de zoom
+    scene.addLine(QLine(100, 200, 300, 200))
+
+    # Botões referentes a função de zoom
     zoom_in_button = QPushButton("+")
     zoom_out_button = QPushButton("-")
-    zoom_in_button.clicked.connect(functions.zoom_In)
-    zoom_out_button.clicked.connect(functions.zoom_Out)
+    zoom_in_button.clicked.connect(lambda: viewport.scale(1.2, 1.2))
+    zoom_out_button.clicked.connect(lambda: viewport.scale(1/1.2, 1/1.2))
 
     # Botões referentes a função de navegação
     nav_left_button = QPushButton("left")
     nav_right_button = QPushButton("right")
     nav_up_button = QPushButton("up")
     nav_down_button = QPushButton("down")
-    nav_left_button.clicked.connect(functions.nav_left)
-    nav_right_button.clicked.connect(functions.nav_right)
-    nav_up_button.clicked.connect(functions.nav_up)
-    nav_down_button.clicked.connect(functions.nav_down)
+    nav_left_button.clicked.connect(nav_left)
+    nav_right_button.clicked.connect(nav_right)
+    nav_up_button.clicked.connect(nav_up)
+    nav_down_button.clicked.connect(nav_down)
 
     # Inicio dos layouts
     # Layout do menu dos objetos
