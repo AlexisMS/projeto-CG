@@ -2,7 +2,7 @@ import sys, logging
 from object import WireFrame
 from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect
 from PySide6.QtGui import QColor, QPolygon
-from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit, QSpinBox
+from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit, QSpinBox, QGraphicsRectItem
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -97,7 +97,9 @@ class MainWindow(QMainWindow):
         self.viewport = QGraphicsView(self.scene)
         self.viewport.setFixedSize(QSize(800,600))
         self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
-        self.viewport.setSceneRect(QRect(0,0, 780,580))
+        self.scene.setSceneRect(0,0,780,580)
+        # self.rect_item = QGraphicsRectItem(QRect(0,0, 780,580))
+        # self.scene.addItem(self.rect_item)
         
         object_list = QListWidget()
         for i in range(6):
@@ -122,13 +124,14 @@ class MainWindow(QMainWindow):
         self.create_object_button = QPushButton("Novo Objeto")
         self.create_object_button.clicked.connect(self.subWindows.open_NewObjectDialog)
 
+        # SOMENTE PARA TESTES
         self.scene.addLine(QLine(100, 200, 300, 200))
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
         self.zoom_out_button = QPushButton("-")
-        self.zoom_in_button.clicked.connect(lambda: self.viewport.scale(1.2, 1.2))
-        self.zoom_out_button.clicked.connect(lambda: self.viewport.scale(1/1.2, 1/1.2))
+        self.zoom_in_button.clicked.connect(lambda: self.viewport.scale(1.1, 1.1))
+        self.zoom_out_button.clicked.connect(lambda: self.viewport.scale(1/1.1, 1/1.1))
 
         # Botões referentes a função de navegação
         self.nav_left_button = QPushButton("left")
@@ -207,23 +210,38 @@ class MainWindow(QMainWindow):
         self.window_layout.addWidget(self.log_widget, 1)
         self.window_ui = QWidget()
         self.window_ui.setLayout(self.window_layout)
-        self.window_ui.setWindowTitle("Computação Gráfica")
 
+        self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.window_ui)
         
         logging.info('programa iniciado')
 
-    def nav_left():
-        pass
+    def nav_left(self):
+        current_rect = self.scene.sceneRect()
+        self.scene.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
+                                      current_rect.width()+20, current_rect.height()))
+        # self.viewport.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
+        #                                  current_rect.width()+20, current_rect.height()))
 
-    def nav_right():
-        pass
+    def nav_right(self):
+        current_rect = self.scene.sceneRect()
+        self.scene.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
+                                      current_rect.width()-20, current_rect.height()))        # self.viewport.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
+        #                                  current_rect.width()-20, current_rect.height()))
 
-    def nav_up():
-        pass
+    def nav_up(self):
+        current_rect = self.scene.sceneRect()
+        self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
+                                      current_rect.width(), current_rect.height()+20))
+        # self.viewport.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
+        #                                  current_rect.width(), current_rect.height()-20))
 
-    def nav_down():
-        pass
+    def nav_down(self):
+        current_rect = self.scene.sceneRect()
+        self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
+                                      current_rect.width(), current_rect.height()-20))
+        # self.viewport.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
+        #                                  current_rect.width(), current_rect.height()+20))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
