@@ -101,15 +101,17 @@ class MainWindow(QMainWindow):
         # self.rect_item = QGraphicsRectItem(QRect(0,0, 780,580))
         # self.scene.addItem(self.rect_item)
         
-        object_list = QListWidget()
+
+
+        self.object_list = QListWidget()
         for i in range(6):
             item = QListWidgetItem(f"Objeto {i}")
             item.setTextAlignment(Qt.AlignCenter)
-            object_list.addItem(item)
+            self.object_list.addItem(item)
 
-        logTextBox = QTextEditLogger()
-        logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-        logging.getLogger().addHandler(logTextBox)
+        self.logTextBox = QTextEditLogger()
+        self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(self.logTextBox)
         logging.getLogger().setLevel(logging.DEBUG)
 
         # Interface para iniciar criação de objetos
@@ -130,8 +132,8 @@ class MainWindow(QMainWindow):
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
         self.zoom_out_button = QPushButton("-")
-        self.zoom_in_button.clicked.connect(lambda: self.viewport.scale(1.1, 1.1))
-        self.zoom_out_button.clicked.connect(lambda: self.viewport.scale(1/1.1, 1/1.1))
+        self.zoom_in_button.clicked.connect(self.zoom_In)
+        self.zoom_out_button.clicked.connect(self.zoom_Out)
 
         # Botões referentes a função de navegação
         self.nav_left_button = QPushButton("left")
@@ -149,7 +151,7 @@ class MainWindow(QMainWindow):
         self.left_objects_layout = QVBoxLayout()  
         self.left_objects_layout.addWidget(self.create_object_point_amount_widget)  
         self.left_objects_layout.addWidget(self.create_object_button)
-        self.left_objects_layout.addWidget(object_list)
+        self.left_objects_layout.addWidget(self.object_list)
         self.left_objects_menu = QGroupBox("Objetos")
         self.left_objects_menu.setLayout(self.left_objects_layout)
 
@@ -191,7 +193,7 @@ class MainWindow(QMainWindow):
         # Layout do log
         # Contém a paret textual do log
         self.log_layout = QVBoxLayout()
-        self.log_layout.addWidget(logTextBox.widget)
+        self.log_layout.addWidget(self.logTextBox.widget)
         self.log_widget = QGroupBox("Logs")
         self.log_widget.setLayout(self.log_layout)
 
@@ -216,32 +218,40 @@ class MainWindow(QMainWindow):
         
         logging.info('programa iniciado')
 
+    def zoom_In(self):
+        self.viewport.scale(1.1, 1.1)
+        logging.info('zoom in de 10%')
+
+    def zoom_Out(self):
+        self.viewport.scale(1/1.1, 1/1.1)
+        logging.info('zoom out de 10%')
+
+
+
     def nav_left(self):
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
                                       current_rect.width()+20, current_rect.height()))
-        # self.viewport.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
-        #                                  current_rect.width()+20, current_rect.height()))
+        logging.info('window deslocada')
 
     def nav_right(self):
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
-                                      current_rect.width()-20, current_rect.height()))        # self.viewport.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
-        #                                  current_rect.width()-20, current_rect.height()))
+                                      current_rect.width()-20, current_rect.height()))
+        logging.info('window deslocada')
 
     def nav_up(self):
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
                                       current_rect.width(), current_rect.height()+20))
-        # self.viewport.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
-        #                                  current_rect.width(), current_rect.height()-20))
+        logging.info('window deslocada')
 
     def nav_down(self):
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
                                       current_rect.width(), current_rect.height()-20))
-        # self.viewport.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
-        #                                  current_rect.width(), current_rect.height()+20))
+        logging.info('window deslocada')
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
