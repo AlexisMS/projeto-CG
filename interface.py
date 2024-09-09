@@ -72,7 +72,15 @@ class NewObjectDialog(QWidget):
     
     @Slot()
     def new_Object(self, display_file, point_ammount):
-        if (self.name_entry.text() == "") or (self.x_coord.count("") == 0) or (self.y_coord.count("") == 0):
+        # Checa se há valor vazio em alguma coordenada submetida
+        empty_coord = False
+        for i in range(len(self.x_coord)):
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+                empty_coord = True
+                break
+
+        # Cancela criação de objetos se não cumprir algum requisito
+        if self.name_entry.text() == "" or empty_coord:
             logging.info("wireframe não criado: campos precisam ser preenchidos")
             self.close()
         else:
