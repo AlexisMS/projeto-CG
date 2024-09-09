@@ -15,7 +15,7 @@ class QTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 class NewObjectDialog(QWidget):
-    def __init__(self, point_amount):
+    def __init__(self, display_file, point_amount):
         super().__init__()
 
         self.points = []
@@ -31,56 +31,61 @@ class NewObjectDialog(QWidget):
             self.y_label.append(QLabel("Y"+str(n)))
             self.y_coord.append(QLineEdit())
 
-        #self.buttonAddPoint= QPushButton("Adicionar ponto")
-        #self.buttonAddPoint.clicked.connect(self.new_Point)
         self.buttonCreateObject = QPushButton("Criar objeto")
-        self.buttonCreateObject.clicked.connect(self.new_Object)
+        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(display_file, point_amount))
         
-        point_layout = []
-        point_widget = []
+        self.point_layout = []
+        self.point_widget = []
         for n in range(point_amount):
-            point_layout.append(QHBoxLayout())
-            point_layout[n].addWidget(self.x_label[n])
-            point_layout[n].addWidget(self.x_coord[n])
-            point_layout[n].addWidget(self.y_label[n])
-            point_layout[n].addWidget(self.y_coord[n])
-            point_widget.append(QWidget())
-            point_widget[n].setLayout(point_layout[n])
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
 
-        layout = QVBoxLayout()
+        self.name_label = QLabel("Nome do Objeto")
+        self.name_entry = QLineEdit()
+        self.name_layout = QHBoxLayout()
+        self.name_layout.addWidget(self.name_label)
+        self.name_layout.addWidget(self.name_entry)
+        self.name_widget = QWidget()
+        self.name_widget.setLayout(self.name_layout)
+
+        # Configura o layout
+        self.layout = QVBoxLayout()
+        
+        self.layout.addWidget(self.name_widget)
+
         for n in range(point_amount):
-            layout.addWidget(point_widget[n])
-        #layout.addWidget(self.buttonAddPoint)
-        layout.addWidget(self.buttonCreateObject)
-        self.setLayout(layout)
+            self.layout.addWidget(self.point_widget[n])
+
+        self.layout.addWidget(self.buttonCreateObject)
+        self.setLayout(self.layout)
         self.setWindowTitle("Novo Objeto")
     
     @Slot()
     def new_Point(self, n):
         self.points.append(QPoint(int(self.x_coord[n].text()), int(self.y_coord[n].text())))
-        #self.xx.clear()
-        #self.yy.clear()
     
     @Slot()
-    def new_Object(self, point_ammount):
+    def new_Object(self, display_file, point_ammount):
         for n in range(point_ammount):
             self.new_Point(n)
-        self.x_coord.clear()
-        self.y_coord.clear()
-        #polygon = QPolygon(self.points)        
-        #scene.addPolygon(polygon)
- 
-        message = ("poligono criado em")
-        for p in self.points:
-            message += " (" +self.x_coord[n].text()+ "," +self.y_coord[n].text()+ ")"
 
+        wireframe_object = WireFrame(self.name_entry.text().upper(), self.points)
+        display_file.append(wireframe_object)
+
+
+        message = (" wireframe "+wireframe_object.get_name()+"<"+wireframe_object.get_type()+"> criado em " + wireframe_object.get_str_points())
         logging.info(message)
 
         self.close()
     
 class SubWindows():
-    def open_NewObjectDialog(self, checked):
-        self.new_window = NewObjectDialog(self.create_object_point_amount.value())
+    def open_NewObjectDialog(self, display_file, point_amount):
+        self.new_window = NewObjectDialog(display_file, point_amount)
         self.new_window.show()
 
 
@@ -98,10 +103,9 @@ class MainWindow(QMainWindow):
         self.viewport.setFixedSize(QSize(800,600))
         self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
         self.scene.setSceneRect(0,0,780,580)
-        # self.rect_item = QGraphicsRectItem(QRect(0,0, 780,580))
-        # self.scene.addItem(self.rect_item)
         
-
+        # Armazena os objetos criados
+        self.display_file = []
 
         self.object_list = QListWidget()
         for i in range(6):
@@ -124,7 +128,7 @@ class MainWindow(QMainWindow):
         self.create_object_point_amount_widget = QWidget()
         self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
         self.create_object_button = QPushButton("Novo Objeto")
-        self.create_object_button.clicked.connect(self.subWindows.open_NewObjectDialog)
+        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.display_file, self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
         self.scene.addLine(QLine(100, 200, 300, 200))
@@ -225,8 +229,6 @@ class MainWindow(QMainWindow):
     def zoom_Out(self):
         self.viewport.scale(1/1.1, 1/1.1)
         logging.info('zoom out de 10%')
-
-
 
     def nav_left(self):
         current_rect = self.scene.sceneRect()
