@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect
 from PySide6.QtGui import QColor, QPolygon
 from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit, QSpinBox, QGraphicsRectItem
 
+
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
         super().__init__()
@@ -79,8 +80,9 @@ class NewObjectDialog(QWidget):
 
 
         message = (" wireframe "+wireframe_object.get_name()+"<"+wireframe_object.get_type()+"> criado em " + wireframe_object.get_str_points())
+        item = QListWidgetItem(wireframe_object.get_name())
+        object_list.addItem(item)
         logging.info(message)
-
         self.close()
     
 class SubWindows():
@@ -107,11 +109,11 @@ class MainWindow(QMainWindow):
         # Armazena os objetos criados
         self.display_file = []
 
-        self.object_list = QListWidget()
-        for i in range(6):
-            item = QListWidgetItem(f"Objeto {i}")
-            item.setTextAlignment(Qt.AlignCenter)
-            self.object_list.addItem(item)
+        #self.object_list = QListWidget()
+        #for i in range(6):
+        #    item = QListWidgetItem(f"Objeto {i}")
+        #    item.setTextAlignment(Qt.AlignCenter)
+        #    self.object_list.addItem(item)
 
         self.logTextBox = QTextEditLogger()
         self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -155,7 +157,7 @@ class MainWindow(QMainWindow):
         self.left_objects_layout = QVBoxLayout()  
         self.left_objects_layout.addWidget(self.create_object_point_amount_widget)  
         self.left_objects_layout.addWidget(self.create_object_button)
-        self.left_objects_layout.addWidget(self.object_list)
+        self.left_objects_layout.addWidget(object_list)
         self.left_objects_menu = QGroupBox("Objetos")
         self.left_objects_menu.setLayout(self.left_objects_layout)
 
@@ -257,6 +259,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    object_list = QListWidget()
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
