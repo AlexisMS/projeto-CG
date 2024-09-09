@@ -72,18 +72,24 @@ class NewObjectDialog(QWidget):
     
     @Slot()
     def new_Object(self, display_file, point_ammount):
-        for n in range(point_ammount):
-            self.new_Point(n)
+        if (self.name_entry.text() == "") or (self.x_coord.count("") == 0) or (self.y_coord.count("") == 0):
+            logging.info("wireframe não criado: campos precisam ser preenchidos")
+            self.close()
+        else:
+            for n in range(point_ammount):
+                self.new_Point(n)
 
-        wireframe_object = WireFrame(self.name_entry.text().upper(), self.points)
-        display_file.append(wireframe_object)
+            wireframe_object = WireFrame(self.name_entry.text().upper(), self.points)
+            display_file.append(wireframe_object)
 
-
-        message = (" wireframe "+wireframe_object.get_name()+"<"+wireframe_object.get_type()+"> criado em " + wireframe_object.get_str_points())
-        item = QListWidgetItem(wireframe_object.get_name())
-        object_list.addItem(item)
-        logging.info(message)
-        self.close()
+            message = ("wireframe "+wireframe_object.get_name()+"<"
+                       +wireframe_object.get_type()+"> criado em "
+                       +wireframe_object.get_str_points())
+            
+            item = QListWidgetItem(wireframe_object.get_name())
+            object_list.addItem(item)
+            logging.info(message)
+            self.close()
     
 class SubWindows():
     def open_NewObjectDialog(self, display_file, point_amount):
