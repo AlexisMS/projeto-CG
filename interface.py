@@ -1,8 +1,8 @@
 import sys, logging
 from object import WireFrame
-from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect
-from PySide6.QtGui import QColor, QPolygon
-from PySide6.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QLayout, QMainWindow, QGraphicsLineItem, QLineEdit, QSpinBox, QGraphicsRectItem
+from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect, QTimer
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QMainWindow, QLineEdit, QSpinBox
 
 
 class QTextEditLogger(logging.Handler):
@@ -16,7 +16,7 @@ class QTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 class NewObjectDialog(QWidget):
-    def __init__(self, display_file, point_amount):
+    def __init__(self, point_amount):
         super().__init__()
 
         self.points = []
@@ -33,7 +33,7 @@ class NewObjectDialog(QWidget):
             self.y_coord.append(QLineEdit())
 
         self.buttonCreateObject = QPushButton("Criar objeto")
-        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(display_file, point_amount))
+        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount))
         
         self.point_layout = []
         self.point_widget = []
@@ -71,7 +71,7 @@ class NewObjectDialog(QWidget):
         self.points.append(QPoint(int(self.x_coord[n].text()), int(self.y_coord[n].text())))
     
     @Slot()
-    def new_Object(self, display_file, point_ammount):
+    def new_Object(self, point_ammount):
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -89,19 +89,22 @@ class NewObjectDialog(QWidget):
 
             wireframe_object = WireFrame(self.name_entry.text().upper(), self.points)
             display_file.append(wireframe_object)
+            
+            item = QListWidgetItem(wireframe_object.get_name())
+            object_list.addItem(item)
+
+            window.update_plot()
 
             message = ("wireframe "+wireframe_object.get_name()+"<"
                        +wireframe_object.get_type()+"> criado em "
                        +wireframe_object.get_str_points())
             
-            item = QListWidgetItem(wireframe_object.get_name())
-            object_list.addItem(item)
             logging.info(message)
             self.close()
     
 class SubWindows():
-    def open_NewObjectDialog(self, display_file, point_amount):
-        self.new_window = NewObjectDialog(display_file, point_amount)
+    def open_NewObjectDialog(self, point_amount):
+        self.new_window = NewObjectDialog(point_amount)
         self.new_window.show()
 
 
@@ -119,15 +122,10 @@ class MainWindow(QMainWindow):
         self.viewport.setFixedSize(QSize(800,600))
         self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
         self.scene.setSceneRect(0,0,780,580)
-        
-        # Armazena os objetos criados
-        self.display_file = []
 
-        #self.object_list = QListWidget()
-        #for i in range(6):
-        #    item = QListWidgetItem(f"Objeto {i}")
-        #    item.setTextAlignment(Qt.AlignCenter)
-        #    self.object_list.addItem(item)
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.update_plot)
+        # self.timer.start(2000)
 
         self.logTextBox = QTextEditLogger()
         self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -144,10 +142,10 @@ class MainWindow(QMainWindow):
         self.create_object_point_amount_widget = QWidget()
         self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
         self.create_object_button = QPushButton("Novo Objeto")
-        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.display_file, self.create_object_point_amount.value()))
+        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
-        self.scene.addLine(QLine(100, 200, 300, 200))
+        #self.scene.addLine(QLine(100, 200, 300, 200))
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
@@ -270,10 +268,41 @@ class MainWindow(QMainWindow):
                                       current_rect.width(), current_rect.height()-20))
         logging.info('window deslocada')
 
+    def update_plot(self):
+        # Não atualiza se display_file for vazio
+        if len(display_file) != 0:
+            self.scene.clear()
+            for w in display_file:
+                points = w.get_points()
+                
+                if len(points) == 1:
+                    # transformed_points = self.viewport_transform(points[0])
+                    # self.scene.addLine(transformed_points[0], transformed_points[1],
+                    #                    transformed_points[0], transformed_points[1])
+                    self.scene.addLine(points[0].x(), self.scene.height() - points[0].y(),
+                                       points[0].x(), self.scene.height() - points[0].y())
+                else:
+                    for i in range(len(points)-1):
+                        # f_transformed_points = self.viewport_transform(points[i])
+                        # l_transformed_points = self.viewport_transform(points[i+1])
+                        # self.scene.addLine(f_transformed_points[0], f_transformed_points[1],
+                        #                 l_transformed_points[0], l_transformed_points[1])
+                        self.scene.addLine(points[i].x(), self.scene.height() - points[i].y(),
+                                       points[i+1].x(), self.scene.height() - points[i+1].y())
+
+    def viewport_transform(self, point):
+        xvp = ((point.x() - self.scene.sceneRect().left())
+                /(self.scene.sceneRect().right() - self.scene.sceneRect().left())
+                *(self.viewport.width() - self.viewport.x()))
+        yvp = (1 - ((point.y() - self.scene.sceneRect().top())
+                /(self.scene.sceneRect().bottom() - self.scene.sceneRect().top()))
+                *(self.viewport.height() - self.viewport.y()))
+        return (xvp, yvp)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     object_list = QListWidget()
+    display_file = []
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

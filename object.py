@@ -2,7 +2,7 @@ class WireFrame():
     def __init__(self, name = str, points = list):
         self.name = name
         self.type = str(len(points))
-        self.points = points.copy()
+        self.points = points
 
     def get_name(self):
         return self.name
