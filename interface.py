@@ -1,9 +1,10 @@
 import sys, logging
-from object import WireFrame
 from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QMainWindow, QLineEdit, QSpinBox
-
+from display_file import DisplayFile
+from window import Window
+from objects import WireFrame, Point
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -14,6 +15,7 @@ class QTextEditLogger(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         self.widget.appendPlainText(msg)
+
 
 class NewObjectDialog(QWidget):
     def __init__(self, point_amount):
@@ -68,7 +70,9 @@ class NewObjectDialog(QWidget):
     
     @Slot()
     def new_Point(self, n):
-        self.points.append(QPoint(int(self.x_coord[n].text()), int(self.y_coord[n].text())))
+        x = int(self.x_coord[n].text())
+        y = int(self.y_coord[n].text())
+        self.points.append(Point(x, y))
     
     @Slot()
     def new_Object(self, point_ammount):
@@ -87,21 +91,19 @@ class NewObjectDialog(QWidget):
             for n in range(point_ammount):
                 self.new_Point(n)
 
-            wireframe_object = WireFrame(self.name_entry.text().upper(), self.points)
-            display_file.append(wireframe_object)
-            
-            item = QListWidgetItem(wireframe_object.get_name())
-            object_list.addItem(item)
+            object = WireFrame(self.name_entry.text().upper(), self.points)
+            window.get_display_file().add_object(object)
 
-            window.update_plot()
+            screen.update_gui()
 
-            message = ("wireframe "+wireframe_object.get_name()+"<"
-                       +wireframe_object.get_type()+"> criado em "
-                       +wireframe_object.get_str_points())
+            message = ("wireframe "+object.get_name()+"<"
+                       +object.get_type()+"> criado em "
+                       +object.get_str_points())
             
             logging.info(message)
             self.close()
     
+
 class SubWindows():
     def open_NewObjectDialog(self, point_amount):
         self.new_window = NewObjectDialog(point_amount)
@@ -166,10 +168,11 @@ class MainWindow(QMainWindow):
         # Inicio dos layouts
         # Layout do menu dos objetos
         # Contém a lista de objetos e botão de criar objetos
+        self.object_names = QListWidget()
         self.left_objects_layout = QVBoxLayout()  
         self.left_objects_layout.addWidget(self.create_object_point_amount_widget)  
         self.left_objects_layout.addWidget(self.create_object_button)
-        self.left_objects_layout.addWidget(object_list)
+        self.left_objects_layout.addWidget(self.object_names)
         self.left_objects_menu = QGroupBox("Objetos")
         self.left_objects_menu.setLayout(self.left_objects_layout)
 
@@ -268,27 +271,35 @@ class MainWindow(QMainWindow):
                                       current_rect.width(), current_rect.height()-20))
         logging.info('window deslocada')
 
+    def update_gui(self):
+        self.update_objects_names()
+        self.update_plot()
+
+    def update_objects_names(self):
+        self.object_names.clear()
+        for obj in window.get_display_file().get_objects():
+            self.object_names.addItem(QListWidgetItem(obj.get_name()))
+
     def update_plot(self):
         # Não atualiza se display_file for vazio
-        if len(display_file) != 0:
-            self.scene.clear()
-            for w in display_file:
-                points = w.get_points()
-                
-                if len(points) == 1:
-                    # transformed_points = self.viewport_transform(points[0])
-                    # self.scene.addLine(transformed_points[0], transformed_points[1],
-                    #                    transformed_points[0], transformed_points[1])
-                    self.scene.addLine(points[0].x(), self.scene.height() - points[0].y(),
-                                       points[0].x(), self.scene.height() - points[0].y())
-                else:
-                    for i in range(len(points)-1):
-                        # f_transformed_points = self.viewport_transform(points[i])
-                        # l_transformed_points = self.viewport_transform(points[i+1])
-                        # self.scene.addLine(f_transformed_points[0], f_transformed_points[1],
-                        #                 l_transformed_points[0], l_transformed_points[1])
-                        self.scene.addLine(points[i].x(), self.scene.height() - points[i].y(),
-                                       points[i+1].x(), self.scene.height() - points[i+1].y())
+        self
+        self.scene.clear()
+        for object in window.get_display_file().get_objects():
+            points = object.get_points()
+            if len(points) == 1:
+                # transformed_points = self.viewport_transform(points[0])
+                # self.scene.addLine(transformed_points[0], transformed_points[1],
+                #                    transformed_points[0], transformed_points[1])
+                self.scene.addLine(points[0].get_x(), self.scene.height() - points[0].get_y(),
+                                    points[0].get_x(), self.scene.height() - points[0].get_y())
+            else:
+                for i in range(len(points)-1):
+                    # f_transformed_points = self.viewport_transform(points[i])
+                    # l_transformed_points = self.viewport_transform(points[i+1])
+                    # self.scene.addLine(f_transformed_points[0], f_transformed_points[1],
+                    #                 l_transformed_points[0], l_transformed_points[1])
+                    self.scene.addLine(points[i].get_x(), self.scene.height() - points[i].get_y(),
+                                    points[i+1].get_x(), self.scene.height() - points[i+1].get_y())
 
     def viewport_transform(self, point):
         xvp = ((point.x() - self.scene.sceneRect().left())
@@ -298,11 +309,13 @@ class MainWindow(QMainWindow):
                 /(self.scene.sceneRect().bottom() - self.scene.sceneRect().top()))
                 *(self.viewport.height() - self.viewport.y()))
         return (xvp, yvp)
+    
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    object_list = QListWidget()
-    display_file = []
-    window = MainWindow()
-    window.show()
+
+    window = Window(800, 600, DisplayFile())
+    
+    screen = MainWindow()
+    screen.show()
     sys.exit(app.exec())
