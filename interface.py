@@ -18,7 +18,7 @@ class QTextEditLogger(logging.Handler):
 
 
 class NewObjectDialog(QWidget):
-    def __init__(self, point_amount):
+    def __init__(self, point_amount: int):
         super().__init__()
 
         self.points = []
