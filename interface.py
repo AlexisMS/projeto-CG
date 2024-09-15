@@ -69,13 +69,13 @@ class NewObjectDialog(QWidget):
         self.setWindowTitle("Novo Objeto")
     
     @Slot()
-    def new_Point(self, n):
+    def new_Point(self, n: int) -> None:
         x = int(self.x_coord[n].text())
         y = int(self.y_coord[n].text())
         self.points.append(Point(x, y))
     
     @Slot()
-    def new_Object(self, point_ammount):
+    def new_Object(self, point_ammount: int) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -105,7 +105,7 @@ class NewObjectDialog(QWidget):
     
 
 class SubWindows():
-    def open_NewObjectDialog(self, point_amount):
+    def open_NewObjectDialog(self, point_amount: int):
         self.new_window = NewObjectDialog(point_amount)
         self.new_window.show()
 
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
         self.viewport = QGraphicsView(self.scene)
         self.viewport.setFixedSize(QSize(800,600))
         self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
-        self.scene.setSceneRect(0,0,780,580)
+        self.scene.setSceneRect(0,0,window.get_x(),window.get_y())
 
         # self.timer = QTimer()
         # self.timer.timeout.connect(self.update_plot)
@@ -147,7 +147,7 @@ class MainWindow(QMainWindow):
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
-        #self.scene.addLine(QLine(100, 200, 300, 200))
+        self.scene.addLine(QLine(100, 300, 700, 300))
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
@@ -239,50 +239,48 @@ class MainWindow(QMainWindow):
         
         logging.info('programa iniciado')
 
-    def zoom_In(self):
+    def zoom_In(self) -> None:
         self.viewport.scale(1.1, 1.1)
         logging.info('zoom in de 10%')
 
-    def zoom_Out(self):
+    def zoom_Out(self) -> None:
         self.viewport.scale(1/1.1, 1/1.1)
         logging.info('zoom out de 10%')
 
-    def nav_left(self):
+    def nav_left(self) -> None:
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
                                       current_rect.width()+20, current_rect.height()))
         logging.info('window deslocada')
 
-    def nav_right(self):
+    def nav_right(self) -> None:
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
                                       current_rect.width()-20, current_rect.height()))
         logging.info('window deslocada')
 
-    def nav_up(self):
+    def nav_up(self) -> None:
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
                                       current_rect.width(), current_rect.height()+20))
         logging.info('window deslocada')
 
-    def nav_down(self):
+    def nav_down(self) -> None:
         current_rect = self.scene.sceneRect()
         self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
                                       current_rect.width(), current_rect.height()-20))
         logging.info('window deslocada')
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         self.update_objects_names()
         self.update_plot()
 
-    def update_objects_names(self):
+    def update_objects_names(self) -> None:
         self.object_names.clear()
         for obj in window.get_display_file().get_objects():
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
 
-    def update_plot(self):
-        # Não atualiza se display_file for vazio
-        self
+    def update_plot(self) -> None:
         self.scene.clear()
         for object in window.get_display_file().get_objects():
             points = object.get_points()
@@ -301,20 +299,22 @@ class MainWindow(QMainWindow):
                     self.scene.addLine(points[i].get_x(), self.scene.height() - points[i].get_y(),
                                     points[i+1].get_x(), self.scene.height() - points[i+1].get_y())
 
-    def viewport_transform(self, point):
-        xvp = ((point.x() - self.scene.sceneRect().left())
+    def viewport_transform(self, point: Point) -> tuple[int, int]:
+        xvp = ((point.get_x() - self.scene.sceneRect().left())
                 /(self.scene.sceneRect().right() - self.scene.sceneRect().left())
                 *(self.viewport.width() - self.viewport.x()))
-        yvp = (1 - ((point.y() - self.scene.sceneRect().top())
+        
+        yvp = (1 - ((point.get_y() - self.scene.sceneRect().top())
                 /(self.scene.sceneRect().bottom() - self.scene.sceneRect().top()))
                 *(self.viewport.height() - self.viewport.y()))
+        
         return (xvp, yvp)
     
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = Window(800, 600, DisplayFile())
+    window = Window(780, 580, DisplayFile())
     
     screen = MainWindow()
     screen.show()

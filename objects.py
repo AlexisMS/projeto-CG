@@ -1,5 +1,17 @@
+class Point():
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def get_x(self) -> int:
+        return self.x
+    
+    def get_y(self) -> int:
+        return self.y
+
+
 class WireFrame():
-    def __init__(self, name = str, points = list):
+    def __init__(self, name: str, points: list[Point]):
         self.name = name
         self.type = str(len(points))
         self.points = points
@@ -20,15 +32,3 @@ class WireFrame():
             str_point += "("+str(p.get_x())+","+str(p.get_y())+")"
             
         return str_point
-    
-
-class Point():
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def get_x(self) -> int:
-        return self.x
-    
-    def get_y(self) -> int:
-        return self.y
