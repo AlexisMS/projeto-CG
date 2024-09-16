@@ -119,7 +119,6 @@ class MainWindow(QMainWindow):
 
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(QColor('grey'))
-        self.scene.setSceneRect(window.get_xmin(),window.get_ymin(),window.get_xmax(),window.get_ymax())
 
         self.subWindows = SubWindows()
         
@@ -133,7 +132,8 @@ class MainWindow(QMainWindow):
         # Viewport
         self.viewport = QGraphicsView(self.scene)
         self.viewport.setFixedSize(QSize(800,600))
-        self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
+        self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)
+        self.viewport.setSceneRect(window.get_xmin(),window.get_ymin(),window.get_xmax(),window.get_ymax())
         self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
         self.viewport.fitInView(self.scene.sceneRect(), Qt.IgnoreAspectRatio)
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
-        # self.scene.addLine(QLine(200, 290, 600, 290))
+        self.scene.addRect(100, 75, 600, 450)
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
@@ -276,8 +276,8 @@ class MainWindow(QMainWindow):
             window.add_zoom()
 
             rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-            self.scene.setSceneRect(rect)
-            # self.viewport.centerOn(rect.center())
+            self.viewport.setSceneRect(rect)
+            self.viewport.centerOn(rect.center())
             self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
             # self.update_plot()
             # self.viewport.scale(1.1, 1.1)
@@ -298,8 +298,8 @@ class MainWindow(QMainWindow):
             window.sub_zoom()
 
             rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-            self.scene.setSceneRect(rect)
-            # self.viewport.centerOn(rect.center())
+            self.viewport.setSceneRect(rect)
+            self.viewport.centerOn(rect.center())
             self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
             # self.update_plot()
             # self.viewport.scale(1/1.1, 1/1.1)
@@ -311,9 +311,9 @@ class MainWindow(QMainWindow):
 
         # current_rect = self.scene.sceneRect()
         rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.scene.setSceneRect(rect)
-        # self.viewport.centerOn(rect.center())
-        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+        self.viewport.setSceneRect(rect)
+        self.viewport.centerOn(rect.center())
+        self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
         # self.update_plot()
 
         logging.info('window deslocada')
@@ -324,8 +324,8 @@ class MainWindow(QMainWindow):
 
         # current_rect = self.scene.sceneRect()
         rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.scene.setSceneRect(rect)
-        # self.viewport.centerOn(rect.center())
+        self.viewport.setSceneRect(rect)
+        self.viewport.centerOn(rect.center())
         # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
         # self.update_plot()
 
@@ -337,8 +337,8 @@ class MainWindow(QMainWindow):
 
         # current_rect = self.scene.sceneRect()
         rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.scene.setSceneRect(rect)
-        # self.viewport.centerOn(rect.center())
+        self.viewport.setSceneRect(rect)
+        self.viewport.centerOn(rect.center())
         # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
         # self.update_plot()
 
@@ -350,8 +350,8 @@ class MainWindow(QMainWindow):
 
         # current_rect = self.scene.sceneRect()
         rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.scene.setSceneRect(rect)
-        # self.viewport.centerOn(rect.center())
+        self.viewport.setSceneRect(rect)
+        self.viewport.centerOn(rect.center())
         # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
         # self.update_plot()
 

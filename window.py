@@ -44,12 +44,16 @@ class Window():
     
     def set_xmax(self, xmax: int) -> None:
         self.xmax = xmax
+        self.update_center()
     
     def set_ymax(self, ymax: int) -> None:
         self.ymax = ymax
+        self.update_center()
 
     def set_xmin(self, xmin: int) -> None:
         self.xmin = xmin
+        self.update_center()
     
     def set_ymin(self, ymin: int) -> None:
         self.ymin = ymin
+        self.update_center()
