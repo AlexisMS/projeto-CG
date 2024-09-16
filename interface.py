@@ -1,7 +1,9 @@
 import sys, logging
-from PySide6.QtCore import Qt, QSize, QPoint, QLine, Slot, QRect, QTimer
-from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QListWidget, QListWidgetItem, QLabel, QGroupBox, QGraphicsScene, QGraphicsView, QPlainTextEdit, QMainWindow, QLineEdit, QSpinBox
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.Qt import *
+
 from display_file import DisplayFile
 from window import Window
 from objects import WireFrame, Point
@@ -94,7 +96,8 @@ class NewObjectDialog(QWidget):
             object = WireFrame(self.name_entry.text().upper(), self.points)
             window.get_display_file().add_object(object)
 
-            screen.update_gui()
+            screen.update_objects_names()
+            screen.update_plot()
 
             message = ("wireframe "+object.get_name()+"<"
                        +object.get_type()+"> criado em "
@@ -116,14 +119,25 @@ class MainWindow(QMainWindow):
 
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(QColor('grey'))
+        self.scene.setSceneRect(window.get_xmin(),window.get_ymin(),window.get_xmax(),window.get_ymax())
 
         self.subWindows = SubWindows()
         
+        # self.display = QLabel()
+        # self.display.setGeometry(0,0,800,600)
+        # canvas = QPixmap(800, 600)
+        # canvas.fill(QColor("white"))
+        # self.display.setPixmap(canvas)
+        # self.painter = QPainter(self.display.pixmap())
+
         # Viewport
         self.viewport = QGraphicsView(self.scene)
         self.viewport.setFixedSize(QSize(800,600))
         self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)        
-        self.scene.setSceneRect(0,0,window.get_x(),window.get_y())
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.fitInView(self.scene.sceneRect(), Qt.IgnoreAspectRatio)
+        self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         # self.timer = QTimer()
         # self.timer.timeout.connect(self.update_plot)
@@ -147,7 +161,7 @@ class MainWindow(QMainWindow):
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
-        self.scene.addLine(QLine(100, 300, 700, 300))
+        # self.scene.addLine(QLine(200, 290, 600, 290))
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
@@ -236,44 +250,112 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.window_ui)
+
+        # self.painter.drawLine(100, 300, 500, 300)
         
         logging.info('programa iniciado')
 
+    def draw_line(self):
+        self.display.update()
+        self.painter.setPen(QPen(Qt.red, 5))
+        self.painter.drawLine(100, 200, 100, 500)
+
+
     def zoom_In(self) -> None:
-        self.viewport.scale(1.1, 1.1)
-        logging.info('zoom in de 10%')
+        if window.get_zoom() == 10:
+            logging.info('zoom máximo atingido')
+        else:
+            window.set_xmax(window.get_xmax() - 40)
+            window.set_ymax(window.get_ymax() - 30)
+            window.set_xmin(window.get_xmin() + 40)
+            window.set_ymin(window.get_ymin() + 30)
+            # window.set_xmax(window.get_xmax() * 0.9)
+            # window.set_ymax(window.get_ymax() * 0.9)
+            # window.set_xmin(window.get_xmin() * 0.9)
+            # window.set_ymin(window.get_ymin() * 0.9)
+            window.add_zoom()
+
+            rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+            self.scene.setSceneRect(rect)
+            # self.viewport.centerOn(rect.center())
+            self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+            # self.update_plot()
+            # self.viewport.scale(1.1, 1.1)
+            logging.info('zoom in de 10%')
 
     def zoom_Out(self) -> None:
-        self.viewport.scale(1/1.1, 1/1.1)
-        logging.info('zoom out de 10%')
+        if window.get_zoom() == 0:
+            logging.info('zoom mínimo atingido')
+        else:
+            window.set_xmax(window.get_xmax() + 40)
+            window.set_ymax(window.get_ymax() + 30)
+            window.set_xmin(window.get_xmin() - 40)
+            window.set_ymin(window.get_ymin() - 30)
+            # window.set_xmax(window.get_xmax() * 1.1)
+            # window.set_ymax(window.get_ymax() * 1.1)
+            # window.set_xmin(window.get_xmax() * 1.1)
+            # window.set_ymin(window.get_ymax() * 1.1)
+            window.sub_zoom()
+
+            rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+            self.scene.setSceneRect(rect)
+            # self.viewport.centerOn(rect.center())
+            self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+            # self.update_plot()
+            # self.viewport.scale(1/1.1, 1/1.1)
+            logging.info('zoom out de 10%')
 
     def nav_left(self) -> None:
-        current_rect = self.scene.sceneRect()
-        self.scene.setSceneRect(QRect(current_rect.x()+20, current_rect.y(), 
-                                      current_rect.width()+20, current_rect.height()))
+        window.set_xmax(window.get_xmax() + 20)
+        window.set_xmin(window.get_xmin() + 20)
+
+        # current_rect = self.scene.sceneRect()
+        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+        self.scene.setSceneRect(rect)
+        # self.viewport.centerOn(rect.center())
+        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+        # self.update_plot()
+
         logging.info('window deslocada')
 
     def nav_right(self) -> None:
-        current_rect = self.scene.sceneRect()
-        self.scene.setSceneRect(QRect(current_rect.x()-20, current_rect.y(), 
-                                      current_rect.width()-20, current_rect.height()))
+        window.set_xmax(window.get_xmax() - 20)
+        window.set_xmin(window.get_xmin() - 20)
+
+        # current_rect = self.scene.sceneRect()
+        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+        self.scene.setSceneRect(rect)
+        # self.viewport.centerOn(rect.center())
+        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+        # self.update_plot()
+
         logging.info('window deslocada')
 
     def nav_up(self) -> None:
-        current_rect = self.scene.sceneRect()
-        self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()+20, 
-                                      current_rect.width(), current_rect.height()+20))
+        window.set_ymax(window.get_ymax() + 15)
+        window.set_ymin(window.get_ymin() + 15)
+
+        # current_rect = self.scene.sceneRect()
+        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+        self.scene.setSceneRect(rect)
+        # self.viewport.centerOn(rect.center())
+        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+        # self.update_plot()
+
         logging.info('window deslocada')
 
     def nav_down(self) -> None:
-        current_rect = self.scene.sceneRect()
-        self.scene.setSceneRect(QRect(current_rect.x(), current_rect.y()-20, 
-                                      current_rect.width(), current_rect.height()-20))
-        logging.info('window deslocada')
+        window.set_ymax(window.get_ymax() - 15)
+        window.set_ymin(window.get_ymin() - 15)
 
-    def update_gui(self) -> None:
-        self.update_objects_names()
-        self.update_plot()
+        # current_rect = self.scene.sceneRect()
+        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
+        self.scene.setSceneRect(rect)
+        # self.viewport.centerOn(rect.center())
+        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
+        # self.update_plot()
+
+        logging.info('window deslocada')
 
     def update_objects_names(self) -> None:
         self.object_names.clear()
@@ -285,37 +367,41 @@ class MainWindow(QMainWindow):
         for object in window.get_display_file().get_objects():
             points = object.get_points()
             if len(points) == 1:
-                # transformed_points = self.viewport_transform(points[0])
-                # self.scene.addLine(transformed_points[0], transformed_points[1],
-                #                    transformed_points[0], transformed_points[1])
-                self.scene.addLine(points[0].get_x(), self.scene.height() - points[0].get_y(),
-                                    points[0].get_x(), self.scene.height() - points[0].get_y())
+                transformed_point = self.viewport_transform(points[0])
+                self.scene.addLine(transformed_point.get_x(), transformed_point.get_y(),
+                                   transformed_point.get_x(), transformed_point.get_y())
+                # self.scene.addLine(points[0].get_x(), self.scene.height() - points[0].get_y(),
+                #                     points[0].get_x(), self.scene.height() - points[0].get_y())
             else:
                 for i in range(len(points)-1):
-                    # f_transformed_points = self.viewport_transform(points[i])
-                    # l_transformed_points = self.viewport_transform(points[i+1])
-                    # self.scene.addLine(f_transformed_points[0], f_transformed_points[1],
-                    #                 l_transformed_points[0], l_transformed_points[1])
-                    self.scene.addLine(points[i].get_x(), self.scene.height() - points[i].get_y(),
-                                    points[i+1].get_x(), self.scene.height() - points[i+1].get_y())
+                    first_transformed_point = self.viewport_transform(points[i])
+                    last_transformed_point = self.viewport_transform(points[i+1])
+                    self.scene.addLine(first_transformed_point.get_x(), first_transformed_point.get_y(),
+                                    last_transformed_point.get_x(), last_transformed_point.get_y())
+                    # self.scene.addLine(points[i].get_x(), self.scene.height() - points[i].get_y(),
+                    #                 points[i+1].get_x(), self.scene.height() - points[i+1].get_y())
 
-    def viewport_transform(self, point: Point) -> tuple[int, int]:
-        xvp = ((point.get_x() - self.scene.sceneRect().left())
-                /(self.scene.sceneRect().right() - self.scene.sceneRect().left())
-                *(self.viewport.width() - self.viewport.x()))
+    def viewport_transform(self, point: Point) -> Point:
+        xvp = (point.get_x() - window.get_xmin())
+        xvp = xvp / (window.get_xmax() - window.get_xmin())
+        xvp = xvp * (self.viewport.sceneRect().right() - self.viewport.sceneRect().left())
         
-        yvp = (1 - ((point.get_y() - self.scene.sceneRect().top())
-                /(self.scene.sceneRect().bottom() - self.scene.sceneRect().top()))
-                *(self.viewport.height() - self.viewport.y()))
+        yvp = (point.get_y() - window.get_ymin())
+        yvp = yvp / (window.get_ymax() - window.get_ymin())
+        yvp = 1 - yvp
+        yvp = yvp * (self.viewport.sceneRect().bottom() - self.viewport.sceneRect().top())
         
-        return (xvp, yvp)
+        transformed_point = Point(xvp, yvp)
+
+        return transformed_point
     
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = Window(780, 580, DisplayFile())
+    window = Window(0,0,800,600, DisplayFile())
     
     screen = MainWindow()
     screen.show()
+
     sys.exit(app.exec())

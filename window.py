@@ -1,24 +1,55 @@
 from display_file import DisplayFile
+from objects import Point
 
 
 class Window():
-    def __init__(self, x: int, y: int, display_file: DisplayFile):
-        self.x = x
-        self.y = y
+    def __init__(self, xmin: int, ymin: int, xmax: int, ymax: int, display_file: DisplayFile):
+        self.xmin = xmin
+        self.ymin = ymin
+        self.xmax = xmax
+        self.ymax = ymax
+        self.center = Point((xmax + xmin)/2, (ymax + ymin)/2)
         self.display_file = display_file
+        self.zoom = 0
 
+    def get_center(self) -> Point:
+        return self.center
+    
+    def update_center(self) -> None:
+        self.center = Point((self.xmax + self.xmin)/2, (self.ymax + self.ymin)/2)
+
+    def add_zoom(self) -> None:
+        self.zoom += 1
+
+    def sub_zoom(self) -> None:
+        self.zoom -= 1
+
+    def get_zoom(self) -> int:
+        return self.zoom
 
     def get_display_file(self) -> DisplayFile:
         return self.display_file
     
-    def get_x(self) -> int:
-        return self.x
+    def get_xmax(self) -> int:
+        return self.xmax
     
-    def get_y(self) -> int:
-        return self.y
+    def get_ymax(self) -> int:
+        return self.ymax
     
-    def set_x(self, x: int) -> None:
-        self.x = x
+    def get_xmin(self) -> int:
+        return self.xmin
     
-    def set_y(self, y: int) -> None:
-        self.y = y
+    def get_ymin(self) -> int:
+        return self.ymin
+    
+    def set_xmax(self, xmax: int) -> None:
+        self.xmax = xmax
+    
+    def set_ymax(self, ymax: int) -> None:
+        self.ymax = ymax
+
+    def set_xmin(self, xmin: int) -> None:
+        self.xmin = xmin
+    
+    def set_ymin(self, ymin: int) -> None:
+        self.ymin = ymin
