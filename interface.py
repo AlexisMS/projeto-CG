@@ -179,6 +179,20 @@ class MainWindow(QMainWindow):
         self.nav_up_button.clicked.connect(self.nav_up)
         self.nav_down_button.clicked.connect(self.nav_down)
 
+        # Botões das funções de transformação
+        self.angle_label = QLabel("degrees")
+        self.angle_simbol_label = QLabel("°")
+        self.point_x_label = QLabel("X")
+        self.point_y_label = QLabel("Y")
+        self.angle_entry = QLineEdit()
+        self.point_x_entry = QLineEdit()
+        self.point_y_entry = QLineEdit()
+        self.translate_button = QPushButton("translate")
+        self.schedule_button = QPushButton("schedule")
+        self.rotate_world_button = QPushButton("world")
+        self.rotate_object_button = QPushButton("object")
+        self.rotate_point_button = QPushButton("point")
+
         # Inicio dos layouts
         # Layout do menu dos objetos
         # Contém a lista de objetos e botão de criar objetos
@@ -208,12 +222,56 @@ class MainWindow(QMainWindow):
         self.left_nav_menu = QGroupBox("Navegação")
         self.left_nav_menu.setLayout(self.left_nav_layout)
 
+        # Layout do menu de transformações
+        # Contém todos os widgets de transformações
+        self.point_layout = QGridLayout()
+        self.point_layout.addWidget(self.point_x_label, 1, 1)
+        self.point_layout.addWidget(self.point_x_entry, 2, 1)
+        self.point_layout.addWidget(self.point_y_label, 1, 2)
+        self.point_layout.addWidget(self.point_y_entry, 2, 2)
+        self.point_menu = QGroupBox("Ponto")
+        self.point_menu.setLayout(self.point_layout)
+
+        self.angle_layout = QGridLayout()
+        self.angle_layout.addWidget(self.angle_label, 1,1)
+        self.angle_layout.addWidget(self.angle_entry,2,1)
+        self.angle_layout.addWidget(self.angle_simbol_label,2,2)
+        self.angle_menu = QGroupBox("Ângulo")
+        self.angle_menu.setLayout(self.angle_layout)
+
+        self.entry_transform_layout = QHBoxLayout()
+        self.entry_transform_layout.addWidget(self.point_menu)
+        self.entry_transform_layout.addWidget(self.angle_menu)
+        self.entry_transform_menu = QWidget()
+        self.entry_transform_menu.setLayout(self.entry_transform_layout)
+
+        self.left_schedule_translate_layout = QHBoxLayout()
+        self.left_schedule_translate_layout.addWidget(self.translate_button)
+        self.left_schedule_translate_layout.addWidget(self.schedule_button)
+        self.left_schedule_translate_menu = QGroupBox("Deslocamento")
+        self.left_schedule_translate_menu.setLayout(self.left_schedule_translate_layout)
+
+        self.rotate_layout = QHBoxLayout()
+        self.rotate_layout.addWidget(self.rotate_world_button)
+        self.rotate_layout.addWidget(self.rotate_object_button)
+        self.rotate_layout.addWidget(self.rotate_point_button)
+        self.rotate_menu = QGroupBox("Rotação")
+        self.rotate_menu.setLayout(self.rotate_layout)
+
+        self.left_transform_layout = QVBoxLayout()
+        self.left_transform_layout.addWidget(self.entry_transform_menu)
+        self.left_transform_layout.addWidget(self.left_schedule_translate_menu)
+        self.left_transform_layout.addWidget(self.rotate_menu)
+        self.left_transform_menu = QGroupBox("Transformações")
+        self.left_transform_menu.setLayout(self.left_transform_layout)
+
         # Layout do menu
         # Contém lista de objetos e funções de zoom e navegação
         self.left_menu_layout = QVBoxLayout()
         self.left_menu_layout.addWidget(self.left_objects_menu)
         self.left_menu_layout.addWidget(self.left_zoom_menu)
         self.left_menu_layout.addWidget(self.left_nav_menu)
+        self.left_menu_layout.addWidget(self.left_transform_menu)
         self.left_menu = QGroupBox()
         self.left_menu.setLayout(self.left_menu_layout)
 
