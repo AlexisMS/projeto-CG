@@ -1,4 +1,4 @@
-import sys, logging
+import sys, logging, math
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
@@ -468,12 +468,20 @@ class MainWindow(QMainWindow):
         return transformed_point
     
     def selected_object(self) -> WireFrame:
-        object = self.windows.get_display_file().get_object(self.object_names.currentItem().text())
-        logging.info('objeto selecionado:'+ object.get_name())
-        return object
+        obj = self.windows.get_display_file().get_object(self.object_names.currentItem().text())
+        logging.info('objeto selecionado:'+ obj.get_name() + " em " +obj.get_str_points())
+        return obj
     
+
     def rotate_world(self):
-        object = self.selected_object()
+        obj = self.selected_object()
+        angle = math.radians(float(self.angle_entry.text()))
+        for point in obj.get_points():
+            point.set_x((point.get_x()*math.cos(angle))+(point.get_y()*math.sin(angle)))
+            point.set_y((point.get_y()*math.cos(angle))-(point.get_x()*math.sin(angle)))
+        self.draw_object(obj)
+        logging.info("rotação de " + str(angle) + " radianos (" + self.angle_entry.text() +" º) aplicada")
+        logging.info("objeto rotacionado " + obj.get_name() +  " em " + obj.get_str_points())
     
 
 if __name__ == '__main__':
