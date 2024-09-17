@@ -192,6 +192,7 @@ class MainWindow(QMainWindow):
         self.rotate_world_button = QPushButton("world")
         self.rotate_object_button = QPushButton("object")
         self.rotate_point_button = QPushButton("point")
+        self.rotate_world_button.clicked.connect(self.rotate_world)
 
         # Inicio dos layouts
         # Layout do menu dos objetos
@@ -465,6 +466,13 @@ class MainWindow(QMainWindow):
         transformed_point = Point(xvp, yvp)
 
         return transformed_point
+    
+    def selected_object(self) -> WireFrame:
+        logging.info('objeto selecionado:'+ self.object_names.currentItem().text())
+        return self.windows.get_display_file().get_object(self.object_names.currentItem().text())
+    
+    def rotate_world(self):
+        object = self.selected_object()
     
 
 if __name__ == '__main__':
