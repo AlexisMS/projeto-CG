@@ -126,12 +126,11 @@ class MainWindow(QMainWindow):
 
         # Viewport
         self.viewport = QGraphicsView(self.scene)
-        self.viewport.setFixedSize(QSize(800,800))
+        # self.viewport.setFixedSize(QSize(800,600))
         self.viewport.centerOn(self.viewport.width() / 2, self.viewport.height() / 2)
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
-        self.pen.setWidth(1)
 
         # Interface de Log
         self.logTextBox = QTextEditLogger()
@@ -272,6 +271,7 @@ class MainWindow(QMainWindow):
         self.viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport_layout.addWidget(self.viewport)
         self.main_widget = QGroupBox("Viewport")
+        self.main_widget.setFixedSize(QSize(800, 800))
         self.main_widget.setLayout(self.viewport_layout)
 
         # Layout do log
@@ -285,7 +285,7 @@ class MainWindow(QMainWindow):
         # Contém o menu de funções e objetos 
         self.main_ui_layout = QHBoxLayout()
         self.main_ui_layout.addWidget(self.left_menu, 1)
-        self.main_ui_layout.addWidget(self.main_widget, 2)
+        self.main_ui_layout.addWidget(self.main_widget, 3)
         self.main_ui = QWidget()    
         self.main_ui.setLayout(self.main_ui_layout)
 
@@ -300,54 +300,29 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.window_ui)
 
-        # self.painter.drawLine(100, 300, 500, 300)
+        self.draw_lines_coords()
         
         logging.info('programa iniciado')
 
-    def draw_line(self):
-        self.display.update()
-        self.painter.setPen(QPen(Qt.red, 5))
-        self.painter.drawLine(100, 200, 100, 500)
-
+    def draw_lines_coords(self):
+        self.pen.setWidth(2)
+        self.pen.setColor(QColor("black"))
+        self.pen_coords = QPen()
+        self.scene.addLine(-10000, self.viewport.height() / 2, 10000, self.viewport.height() / 2, self.pen)
+        self.scene.addLine(self.viewport.width() / 2, -10000, self.viewport.width() / 2, 10000, self.pen)
 
     def zoom_In(self) -> None:
-        if window.get_zoom() == 10:
+        if self.viewport.transform().m11() >= 10:
             logging.info('zoom máximo atingido')
         else:
-            window.set_xmax(window.get_xmax() - 40)
-            window.set_ymax(window.get_ymax() - 30)
-            window.set_xmin(window.get_xmin() + 40)
-            window.set_ymin(window.get_ymin() + 30)
-            # window.set_xmax(window.get_xmax() * 0.9)
-            # window.set_ymax(window.get_ymax() * 0.9)
-            # window.set_xmin(window.get_xmin() * 0.9)
-            # window.set_ymin(window.get_ymin() * 0.9)
-            window.add_zoom()
-
-            rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-            self.viewport.setSceneRect(rect)
-            self.viewport.centerOn(rect.center())
-            self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-            # self.update_plot()
-            # self.viewport.scale(1.1, 1.1)
+            self.viewport.scale(1.1, 1.1)
             logging.info('zoom in de 10%')
 
     def zoom_Out(self) -> None:
-        if window.get_zoom() == 0:
+        if self.viewport.transform().m11() <= 0.1:
             logging.info('zoom mínimo atingido')
         else:
-            window.set_xmax(window.get_xmax() + 40)
-            window.set_ymax(window.get_ymax() + 30)
-            window.set_xmin(window.get_xmin() - 40)
-            window.set_ymin(window.get_ymin() - 30)
-            # window.set_xmax(window.get_xmax() * 1.1)
-            # window.set_ymax(window.get_ymax() * 1.1)
-                # window.set_xmin(window.get_xmax() * 1.1)
-            # window.set_ymin(window.get_ymax() * 1.1)
-            window.sub_zoom()
-
-            self.update_plot()
-            self.viewport.scale(1/1.1, 1/1.1)
+            self.viewport.scale(0.9, 0.9)
             logging.info('zoom out de 10%')
 
     def nav_left(self) -> None:
@@ -444,7 +419,7 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = Window(-500,-375,500,375, DisplayFile())
+    window = Window(-400,-300,400,300, DisplayFile())
     
     screen = MainWindow()
     screen.show()

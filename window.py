@@ -18,15 +18,6 @@ class Window():
     def update_center(self) -> None:
         self.center = Point((self.xmax + self.xmin)/2, (self.ymax + self.ymin)/2)
 
-    def add_zoom(self) -> None:
-        self.zoom += 1
-
-    def sub_zoom(self) -> None:
-        self.zoom -= 1
-
-    def get_zoom(self) -> int:
-        return self.zoom
-
     def get_display_file(self) -> DisplayFile:
         return self.display_file
     
