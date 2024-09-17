@@ -8,9 +8,13 @@ class Window():
         self.ymin = ymin
         self.xmax = xmax
         self.ymax = ymax
+        self.shift = Point(0,0)
         self.center = Point((xmax + xmin)/2, (ymax + ymin)/2)
         self.display_file = display_file
         self.zoom = 0
+
+    def get_shift(self) -> Point:
+        return self.shift
 
     def get_center(self) -> Point:
         return self.center

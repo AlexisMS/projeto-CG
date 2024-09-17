@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
         # Viewport
         self.viewport = QGraphicsView(self.scene)
         # self.viewport.setFixedSize(QSize(800,600))
-        self.viewport.centerOn(self.viewport.width() / 2, self.viewport.height() / 2)
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
@@ -164,10 +164,12 @@ class MainWindow(QMainWindow):
         self.nav_right_button = QPushButton("right")
         self.nav_up_button = QPushButton("up")
         self.nav_down_button = QPushButton("down")
+        self.nav_center_button = QPushButton("center")
         self.nav_left_button.clicked.connect(self.nav_left)
         self.nav_right_button.clicked.connect(self.nav_right)
         self.nav_up_button.clicked.connect(self.nav_up)
         self.nav_down_button.clicked.connect(self.nav_down)
+        self.nav_center_button.clicked.connect(self.nav_center)
 
         # Botões das funções de transformação
         self.angle_label = QLabel("degrees")
@@ -209,6 +211,7 @@ class MainWindow(QMainWindow):
         self.left_nav_layout.addWidget(self.nav_left_button, 2, 1)
         self.left_nav_layout.addWidget(self.nav_right_button, 2, 3)
         self.left_nav_layout.addWidget(self.nav_down_button, 3, 2)
+        self.left_nav_layout.addWidget(self.nav_center_button, 2, 2)
         self.left_nav_menu = QGroupBox("Navegação")
         self.left_nav_menu.setLayout(self.left_nav_layout)
 
@@ -308,8 +311,8 @@ class MainWindow(QMainWindow):
         self.pen.setWidth(2)
         self.pen.setColor(QColor("black"))
         self.pen_coords = QPen()
-        self.scene.addLine(-10000, self.viewport.height() / 2, 10000, self.viewport.height() / 2, self.pen)
-        self.scene.addLine(self.viewport.width() / 2, -10000, self.viewport.width() / 2, 10000, self.pen)
+        self.scene.addLine(-10000, window.get_center().get_y(), 10000, window.get_center().get_y(), self.pen)
+        self.scene.addLine(window.get_center().get_x(), -10000, window.get_center().get_x(), 10000, self.pen)
 
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
@@ -325,55 +328,61 @@ class MainWindow(QMainWindow):
             self.viewport.scale(0.9, 0.9)
             logging.info('zoom out de 10%')
 
+    def nav_center(self) -> None:
+        shift = window.get_shift()
+        window.set_xmax(window.get_xmax() - shift.get_x())
+        window.set_xmin(window.get_xmin() - shift.get_x())
+        window.set_ymax(window.get_ymax() - shift.get_y())
+        window.set_ymin(window.get_ymin() - shift.get_y())
+        shift.set_x(0)
+        shift.set_y(0)
+        window.update_center()
+
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+
+        logging.info('window deslocada')
+
     def nav_left(self) -> None:
         window.set_xmax(window.get_xmax() + 20)
         window.set_xmin(window.get_xmin() + 20)
+        shift = window.get_shift()
+        shift.set_x(shift.get_x() + 20)
+        window.update_center()
 
-        # current_rect = self.scene.sceneRect()
-        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.viewport.setSceneRect(rect)
-        self.viewport.centerOn(rect.center())
-        self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-        # self.update_plot()
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_right(self) -> None:
         window.set_xmax(window.get_xmax() - 20)
         window.set_xmin(window.get_xmin() - 20)
+        shift = window.get_shift()
+        shift.set_x(shift.get_x() - 20)
+        window.update_center()
 
-        # current_rect = self.scene.sceneRect()
-        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.viewport.setSceneRect(rect)
-        self.viewport.centerOn(rect.center())
-        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-        # self.update_plot()
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_up(self) -> None:
         window.set_ymax(window.get_ymax() + 15)
         window.set_ymin(window.get_ymin() + 15)
+        shift = window.get_shift()
+        shift.set_y(shift.get_y() + 15)
+        window.update_center()
 
-        # current_rect = self.scene.sceneRect()
-        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.viewport.setSceneRect(rect)
-        self.viewport.centerOn(rect.center())
-        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-        # self.update_plot()
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_down(self) -> None:
         window.set_ymax(window.get_ymax() - 15)
         window.set_ymin(window.get_ymin() - 15)
+        shift = window.get_shift()
+        shift.set_y(shift.get_y() - 15)
+        window.update_center()
 
-        # current_rect = self.scene.sceneRect()
-        rect = QRectF(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-        self.viewport.setSceneRect(rect)
-        self.viewport.centerOn(rect.center())
-        # self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-        # self.update_plot()
+        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
 
         logging.info('window deslocada')
 

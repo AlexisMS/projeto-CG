@@ -8,8 +8,13 @@ class Point():
     
     def get_y(self) -> int:
         return self.y
-
-
+    
+    def set_x(self, x) -> None:
+        self.x = x
+        
+    def set_y(self, y) -> None:
+        self.y = y
+        
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
         self.name = name
