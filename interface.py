@@ -93,15 +93,15 @@ class NewObjectDialog(QWidget):
             for n in range(point_ammount):
                 self.new_Point(n)
 
-            object = WireFrame(self.name_entry.text().upper(), self.points)
-            window.get_display_file().add_object(object)
-
+            obj = WireFrame(self.name_entry.text().upper(), self.points)
+            
+            # self.windows.get_display_file().add_object(obj)
+            screen.draw_object(obj)
             screen.update_objects_names()
-            screen.update_plot()
 
-            message = ("wireframe "+object.get_name()+"<"
-                       +object.get_type()+"> criado em "
-                       +object.get_str_points())
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
             
             logging.info(message)
             self.close()
@@ -117,17 +117,25 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Cria window
+        self.windows = Window(-400,-300,400,300, DisplayFile())
+
         # Janelas Extras
         self.subWindows = SubWindows()
 
         # Cenário
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(QColor('grey'))
+        # self.scene.setSceneRect(-400,-300,800,600)
 
         # Viewport
         self.viewport = QGraphicsView(self.scene)
-        # self.viewport.setFixedSize(QSize(800,600))
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.setFixedSize(800, 600)
+        self.viewport.setMinimumHeight(0)
+        self.viewport.setMinimumWidth(0)
+        self.viewport.setMaximumHeight(600)
+        self.viewport.setMaximumWidth(800)
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
@@ -274,7 +282,7 @@ class MainWindow(QMainWindow):
         self.viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport_layout.addWidget(self.viewport)
         self.main_widget = QGroupBox("Viewport")
-        self.main_widget.setFixedSize(QSize(800, 800))
+        # self.main_widget.setFixedSize(QSize(810, 610))
         self.main_widget.setLayout(self.viewport_layout)
 
         # Layout do log
@@ -294,25 +302,30 @@ class MainWindow(QMainWindow):
 
         # Janela principal
         # Contém interface de usuario e parte de log
-        self.window_layout = QVBoxLayout()
-        self.window_layout.addWidget(self.main_ui, 10)
-        self.window_layout.addWidget(self.log_widget, 1)
-        self.window_ui = QWidget()
-        self.window_ui.setLayout(self.window_layout)
+        self.windows_layout = QVBoxLayout()
+        self.windows_layout.addWidget(self.main_ui, 10)
+        self.windows_layout.addWidget(self.log_widget, 1)
+        self.windows_ui = QWidget()
+        self.windows_ui.setLayout(self.windows_layout)
 
         self.setWindowTitle("Computação Gráfica")
-        self.setCentralWidget(self.window_ui)
+        self.setCentralWidget(self.windows_ui)
 
         self.draw_lines_coords()
+        
+
+        print(self.viewport.minimumWidth(), self.viewport.maximumWidth())
+        print(self.viewport.minimumHeight(), self.viewport.maximumHeight())
+        print(self.windows.get_xmin(), self.windows.get_ymin())
+        print(self.windows.get_xmax(), self.windows.get_ymax())
         
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
         self.pen.setWidth(2)
         self.pen.setColor(QColor("black"))
-        self.pen_coords = QPen()
-        self.scene.addLine(-10000, window.get_center().get_y(), 10000, window.get_center().get_y(), self.pen)
-        self.scene.addLine(window.get_center().get_x(), -10000, window.get_center().get_x(), 10000, self.pen)
+        self.scene.addLine(-10000, self.windows.get_center().get_y(), 10000, self.windows.get_center().get_y(), self.pen)
+        self.scene.addLine(self.windows.get_center().get_x(), -10000, self.windows.get_center().get_x(), 10000, self.pen)
 
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
@@ -329,96 +342,125 @@ class MainWindow(QMainWindow):
             logging.info('zoom out de 10%')
 
     def nav_center(self) -> None:
-        shift = window.get_shift()
-        window.set_xmax(window.get_xmax() - shift.get_x())
-        window.set_xmin(window.get_xmin() - shift.get_x())
-        window.set_ymax(window.get_ymax() - shift.get_y())
-        window.set_ymin(window.get_ymin() - shift.get_y())
+        shift = self.windows.get_shift()
+        self.windows.set_xmax(self.windows.get_xmax() - shift.get_x())
+        self.windows.set_xmin(self.windows.get_xmin() - shift.get_x())
+        self.windows.set_ymax(self.windows.get_ymax() - shift.get_y())
+        self.windows.set_ymin(self.windows.get_ymin() - shift.get_y())
         shift.set_x(0)
         shift.set_y(0)
-        window.update_center()
+        self.windows.update_center()
 
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
-        logging.info('window deslocada')
+        logging.info('window centralizada')
 
     def nav_left(self) -> None:
-        window.set_xmax(window.get_xmax() + 20)
-        window.set_xmin(window.get_xmin() + 20)
-        shift = window.get_shift()
+        self.windows.set_xmax(self.windows.get_xmax() + 20)
+        self.windows.set_xmin(self.windows.get_xmin() + 20)
+        shift = self.windows.get_shift()
         shift.set_x(shift.get_x() + 20)
-        window.update_center()
+        self.windows.update_center()
 
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_right(self) -> None:
-        window.set_xmax(window.get_xmax() - 20)
-        window.set_xmin(window.get_xmin() - 20)
-        shift = window.get_shift()
+        self.windows.set_xmax(self.windows.get_xmax() - 20)
+        self.windows.set_xmin(self.windows.get_xmin() - 20)
+        shift = self.windows.get_shift()
         shift.set_x(shift.get_x() - 20)
-        window.update_center()
+        self.windows.update_center()
 
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_up(self) -> None:
-        window.set_ymax(window.get_ymax() + 15)
-        window.set_ymin(window.get_ymin() + 15)
-        shift = window.get_shift()
+        self.windows.set_ymax(self.windows.get_ymax() + 15)
+        self.windows.set_ymin(self.windows.get_ymin() + 15)
+        shift = self.windows.get_shift()
         shift.set_y(shift.get_y() + 15)
-        window.update_center()
+        self.windows.update_center()
 
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
     def nav_down(self) -> None:
-        window.set_ymax(window.get_ymax() - 15)
-        window.set_ymin(window.get_ymin() - 15)
-        shift = window.get_shift()
+        self.windows.set_ymax(self.windows.get_ymax() - 15)
+        self.windows.set_ymin(self.windows.get_ymin() - 15)
+        shift = self.windows.get_shift()
         shift.set_y(shift.get_y() - 15)
-        window.update_center()
+        self.windows.update_center()
 
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
+        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
     def update_objects_names(self) -> None:
         self.object_names.clear()
-        for obj in window.get_display_file().get_objects():
+        for obj in self.windows.get_display_file().get_objects():
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
 
-    def update_plot(self) -> None:
-        self.scene.clear()
-        for object in window.get_display_file().get_objects():
-            points = object.get_points()
-            if len(points) == 1:
-                transformed_point = self.viewport_transform(points[0])
-                self.scene.addLine(transformed_point.get_x(), transformed_point.get_y(),
-                                   transformed_point.get_x(), transformed_point.get_y())
-                # self.scene.addLine(points[0].get_x(), self.scene.height() - points[0].get_y(),
-                #                     points[0].get_x(), self.scene.height() - points[0].get_y())
-            else:
-                for i in range(len(points)-1):
-                    first_transformed_point = self.viewport_transform(points[i])
-                    last_transformed_point = self.viewport_transform(points[i+1])
-                    self.scene.addLine(first_transformed_point.get_x(), first_transformed_point.get_y(),
-                                    last_transformed_point.get_x(), last_transformed_point.get_y())
-                    # self.scene.addLine(points[i].get_x(), self.scene.height() - points[i].get_y(),
-                    #                 points[i+1].get_x(), self.scene.height() - points[i+1].get_y())
+    def draw_object(self, obj: WireFrame):
+        self.pen.setWidth(1)
+        self.pen.setColor(QColor("white"))
+
+        if obj.get_type() == 1:
+            point = obj.get_points()[0]
+            
+            transformed_point = self.viewport_transform(point)
+
+            self.scene.addLine(
+                transformed_point.get_x(), transformed_point.get_y(),
+                transformed_point.get_x(), transformed_point.get_y(), self.pen)
+            
+        elif obj.get_type() == 2:
+            first_point = obj.get_points()[0]
+            last_point = obj.get_points()[-1]
+
+            first_transformed_point = self.viewport_transform(first_point)
+            last_transformed_point = self.viewport_transform(last_point)
+
+            self.scene.addLine(
+                first_transformed_point.get_x(), first_transformed_point.get_y(),
+                last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+            
+        else:
+            first_point = obj.get_points()[0]
+            last_point = obj.get_points()[-1]
+
+            first_transformed_point = self.viewport_transform(first_point)
+            last_transformed_point = self.viewport_transform(last_point)
+            
+            for i in range(len(obj.get_points())-1):
+                f_point = obj.get_points()[i]
+                l_point = obj.get_points()[i+1]
+
+                f_transformed_point = self.viewport_transform(f_point)
+                l_transformed_point = self.viewport_transform(l_point)
+
+                self.scene.addLine(
+                f_transformed_point.get_x(), f_transformed_point.get_y(),
+                l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
+
+            self.scene.addLine(
+                last_transformed_point.get_x(), last_transformed_point.get_y(),
+                first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
+        
+        self.windows.get_display_file().add_object(obj)
 
     def viewport_transform(self, point: Point) -> Point:
-        xvp = (point.get_x() - window.get_xmin())
-        xvp = xvp / (window.get_xmax() - window.get_xmin())
-        xvp = xvp * (self.viewport.sceneRect().right() - self.viewport.sceneRect().left())
+        xvp = (point.get_x() - self.windows.get_xmin())
+        xvp = xvp / (self.windows.get_xmax() - self.windows.get_xmin())
+        xvp = xvp * (self.viewport.maximumWidth() - self.viewport.minimumWidth())
         
-        yvp = (point.get_y() - window.get_ymin())
-        yvp = yvp / (window.get_ymax() - window.get_ymin())
+        yvp = (point.get_y() - self.windows.get_ymin())
+        yvp = yvp / (self.windows.get_ymax() - self.windows.get_ymin())
         yvp = 1 - yvp
-        yvp = yvp * (self.viewport.sceneRect().bottom() - self.viewport.sceneRect().top())
+        yvp = yvp * (self.viewport.maximumHeight() - self.viewport.minimumHeight())
         
         transformed_point = Point(xvp, yvp)
 
@@ -428,7 +470,6 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = Window(-400,-300,400,300, DisplayFile())
     
     screen = MainWindow()
     screen.show()
