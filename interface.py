@@ -117,32 +117,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Janelas Extras
+        self.subWindows = SubWindows()
+
+        # Cenário
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(QColor('grey'))
 
-        self.subWindows = SubWindows()
-        
-        # self.display = QLabel()
-        # self.display.setGeometry(0,0,800,600)
-        # canvas = QPixmap(800, 600)
-        # canvas.fill(QColor("white"))
-        # self.display.setPixmap(canvas)
-        # self.painter = QPainter(self.display.pixmap())
-
         # Viewport
         self.viewport = QGraphicsView(self.scene)
-        self.viewport.setFixedSize(QSize(800,600))
-        self.viewport.setAlignment(Qt.AlignmentFlag.AlignTop|Qt.AlignmentFlag.AlignLeft)
-        self.viewport.setSceneRect(window.get_xmin(),window.get_ymin(),window.get_xmax(),window.get_ymax())
-        self.viewport.centerOn(window.get_center().get_x(), window.get_center().get_y())
-        self.viewport.fitInView(self.scene.sceneRect(), Qt.IgnoreAspectRatio)
+        self.viewport.setFixedSize(QSize(800,800))
+        self.viewport.centerOn(self.viewport.width() / 2, self.viewport.height() / 2)
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.pen = QPen()
+        self.pen.setWidth(1)
 
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.update_plot)
-        # self.timer.start(2000)
-
+        # Interface de Log
         self.logTextBox = QTextEditLogger()
         self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logging.getLogger().addHandler(self.logTextBox)
@@ -161,7 +152,7 @@ class MainWindow(QMainWindow):
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
 
         # SOMENTE PARA TESTES
-        self.scene.addRect(100, 75, 600, 450)
+        # self.scene.addRect(1000, 75, 600, 450)
 
         # Botões referentes a função de zoom
         self.zoom_in_button = QPushButton("+")
@@ -294,7 +285,7 @@ class MainWindow(QMainWindow):
         # Contém o menu de funções e objetos 
         self.main_ui_layout = QHBoxLayout()
         self.main_ui_layout.addWidget(self.left_menu, 1)
-        self.main_ui_layout.addWidget(self.main_widget, 3)
+        self.main_ui_layout.addWidget(self.main_widget, 2)
         self.main_ui = QWidget()    
         self.main_ui.setLayout(self.main_ui_layout)
 
@@ -351,16 +342,12 @@ class MainWindow(QMainWindow):
             window.set_ymin(window.get_ymin() - 30)
             # window.set_xmax(window.get_xmax() * 1.1)
             # window.set_ymax(window.get_ymax() * 1.1)
-            # window.set_xmin(window.get_xmax() * 1.1)
+                # window.set_xmin(window.get_xmax() * 1.1)
             # window.set_ymin(window.get_ymax() * 1.1)
             window.sub_zoom()
 
-            rect = QRect(window.get_xmin(), window.get_ymin(), window.get_xmax(), window.get_ymax())
-            self.viewport.setSceneRect(rect)
-            self.viewport.centerOn(rect.center())
-            self.viewport.fitInView(rect, Qt.IgnoreAspectRatio)
-            # self.update_plot()
-            # self.viewport.scale(1/1.1, 1/1.1)
+            self.update_plot()
+            self.viewport.scale(1/1.1, 1/1.1)
             logging.info('zoom out de 10%')
 
     def nav_left(self) -> None:
@@ -457,7 +444,7 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = Window(0,0,800,600, DisplayFile())
+    window = Window(-500,-375,500,375, DisplayFile())
     
     screen = MainWindow()
     screen.show()
