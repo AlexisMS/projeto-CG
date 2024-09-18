@@ -106,7 +106,7 @@ class WireFrame():
         elif self.center.get_x()==0 and self.center.get_y()==0:
             self.transform_basic_scaling(sx,sy)
     
-    def transform_rotation(self,angle):
+    def transform_rotation(self, angle):
         distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y(),2))
         if self.center.get_x()>0 and self.center.get_y()>0:
             self.transform_translate(-distance_to_origin, -distance_to_origin)
