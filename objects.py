@@ -2,14 +2,14 @@ import numpy
 import math
 
 class Point():
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 
-    def get_x(self) -> int:
+    def get_x(self) -> float:
         return self.x
     
-    def get_y(self) -> int:
+    def get_y(self) -> float:
         return self.y
     
     def set_x(self, x) -> None:
