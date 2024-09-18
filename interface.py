@@ -519,7 +519,7 @@ class MainWindow(QMainWindow):
             logging.info("selecione um objeto")
         else:
             obj = self.selected_object()
-            point = Point(int(self.point_x_entry.text()), int(self.point_y_entry.text()))
+            point = Point(float(self.point_x_entry.text()), float(self.point_y_entry.text()))
             obj.transform_scaling(point.get_x(), point.get_y())
             obj.apply_transform()
             obj.reset_transform()
