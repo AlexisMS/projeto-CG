@@ -542,7 +542,7 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            obj.transform_basic_rotation(angle)
+            obj.transform_rotation(angle,Point(0,0))
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
