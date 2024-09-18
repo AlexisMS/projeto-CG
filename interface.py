@@ -193,7 +193,11 @@ class MainWindow(QMainWindow):
         self.rotate_world_button = QPushButton("world")
         self.rotate_object_button = QPushButton("object")
         self.rotate_point_button = QPushButton("point")
+        self.translate_button.clicked.connect(self.translate)
+        self.schedule_button.clicked.connect(self.schedule)
+        self.rotate_object_button.clicked.connect(self.rotate_object)
         self.rotate_world_button.clicked.connect(self.rotate_world)
+        self.rotate_point_button.clicked.connect(self.rotate_point)
 
         # Inicio dos layouts
         # Layout do menu dos objetos
@@ -315,12 +319,11 @@ class MainWindow(QMainWindow):
 
         self.draw_lines_coords()
         
-
         print(self.viewport.minimumWidth(), self.viewport.maximumWidth())
         print(self.viewport.minimumHeight(), self.viewport.maximumHeight())
         print(self.windows.get_xmin(), self.windows.get_ymin())
         print(self.windows.get_xmax(), self.windows.get_ymax())
-        
+
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
@@ -421,7 +424,7 @@ class MainWindow(QMainWindow):
         for obj in self.windows.get_display_file().get_objects():
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
 
-    def draw_object(self, obj: WireFrame):
+    def draw(self, obj: WireFrame):
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
 
@@ -466,7 +469,9 @@ class MainWindow(QMainWindow):
             self.scene.addLine(
                 last_transformed_point.get_x(), last_transformed_point.get_y(),
                 first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
-        
+            
+    def draw_object(self, obj: WireFrame):
+        self.draw(obj)
         self.windows.get_display_file().add_object(obj)
 
     def viewport_transform(self, point: Point) -> Point:
@@ -488,16 +493,50 @@ class MainWindow(QMainWindow):
         logging.info('objeto selecionado:'+ obj.get_name() + " em " +obj.get_str_points())
         return obj
     
+    def redraw_objects(self):
+        self.scene.clear()
+        self.draw_lines_coords()
+        objects = self.windows.get_display_file().get_objects()
+        for obj in objects:
+            self.draw(obj)
+
+    def translate(self):
+        if self.object_names.currentItem() == None:
+            logging.info("selecione um objeto")
+        else:
+            obj = self.selected_object()
+            print(type(obj))
+            translate_point = Point(int(self.point_x_entry.text()), int(self.point_y_entry.text()))
+            for point in obj.get_points():
+                point.set_x(point.get_x() + translate_point.get_x())
+                point.set_y(point.get_y() + translate_point.get_y())
+            self.redraw_objects()
+            logging.info("translação de (" + str(translate_point.get_x()) + "," + str(translate_point.get_y()) + ") aplicada")
+            logging.info("objeto transladado " + obj.get_name() +  " em " + obj.get_str_points())
+
+    def schedule(self):
+        pass
+
+    def rotate_object(self):
+        pass
 
     def rotate_world(self):
-        obj = self.selected_object()
-        angle = math.radians(float(self.angle_entry.text()))
-        for point in obj.get_points():
-            point.set_x((point.get_x()*math.cos(angle))+(point.get_y()*math.sin(angle)))
-            point.set_y((point.get_y()*math.cos(angle))-(point.get_x()*math.sin(angle)))
-        self.draw_object(obj)
-        logging.info("rotação de " + str(angle) + " radianos (" + self.angle_entry.text() +" º) aplicada")
-        logging.info("objeto rotacionado " + obj.get_name() +  " em " + obj.get_str_points())
+        if self.object_names.currentItem() == None:
+            logging.info("selecione um objeto")
+        else:
+            obj = self.selected_object()
+            angle = math.radians(float(self.angle_entry.text()))
+            for point in obj.get_points():
+                # point.set_x(point.get_x()*math.cos(angle) - point.get_y()*math.sin(angle))
+                # point.set_y(point.get_x()*math.sin(angle) - point.get_y()*math.cos(angle))
+                point.set_x((point.get_x()*math.cos(angle))+(point.get_y()*math.sin(angle)))
+                point.set_y((point.get_y()*math.cos(angle))-(point.get_x()*math.sin(angle)))
+            self.redraw_objects()
+            logging.info("rotação de " + str(angle) + " radianos (" + self.angle_entry.text() +" º) aplicada")
+            logging.info("objeto rotacionado " + obj.get_name() +  " em " + obj.get_str_points())
+
+    def rotate_point(self):
+        pass
     
 
 if __name__ == '__main__':
