@@ -25,6 +25,8 @@ class WireFrame():
         self.points = points
         self.transform_matrix = numpy.identity(3)
         self.center = self.get_center()
+        #self.transform_matrix = self.transform_matrix.dot(numpy.array([[0,0,0],[0,0,0],[10,10,1]]))
+        print(self.transform_matrix)
 
     def get_name(self) -> str:
         return self.name
@@ -60,14 +62,15 @@ class WireFrame():
         self.transform_matrix = numpy.identity(3)
     
     def apply_transform(self): #lembrete de rodar reset_transform() depois
+        print(self.get_transform())
         for point in self.points:
-            point_matrix = numpy.array([point.get_x, point.get_y, 1])
+            point_matrix = numpy.array([point.get_x(), point.get_y(), 1])
             point_matrix = point_matrix.dot(self.transform_matrix)
             point.set_x(point_matrix[0])
             point.set_y(point_matrix[1])
     
     def transform_scaling(self,sx,sy):
-        distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y()))
+        distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y(),2))
         if self.center.get_x()>0 and self.center.get_y()>0:
             self.transform_translate(self, -distance_to_origin, -distance_to_origin)
             self.transform_basic_scaling(self,sx,sy)
@@ -100,7 +103,7 @@ class WireFrame():
             self.transform_basic_scaling(self,sx,sy)
     
     def transform_rotation(self,angle):
-        distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y()))
+        distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y(),2))
         if self.center.get_x()>0 and self.center.get_y()>0:
             self.transform_translate(self, -distance_to_origin, -distance_to_origin)
             self.transform_basic_rotation(self,angle)
@@ -134,15 +137,16 @@ class WireFrame():
         
 
     def transform_translate(self, dx, dy):
-        translation = numpy.array([1, 0, 0], [0, 1, 0], [dx, dy, 1])
+        translation = numpy.array([[1, 0, 0], [0, 1, 0], [dx, dy, 1]])
         self.transform_matrix = self.transform_matrix.dot(translation)
     
     def transform_basic_scaling(self, sx, sy):
-        scaling = numpy.array([sx, 0, 0],[0, sy, 0],[0, 0, 1])
+        scaling = numpy.array([[sx, 0, 0],[0, sy, 0],[0, 0, 1]])
         self.transform_matrix = self.transform_matrix.dot(scaling)
     
     def transform_basic_rotation(self, angle):
         angle_rad = math.radians(angle)
-        rotation = numpy.array([math.cos(angle_rad), -math.sin(angle_rad), 0],[math.sin(angle_rad),math.cos(angle_rad),0],[0, 0, 1])
-        self.transform_matrix.dot(rotation)
+        rotation = numpy.array([[math.cos(angle_rad), -math.sin(angle_rad), 0],[math.sin(angle_rad),math.cos(angle_rad),0],[0, 0, 1]])
+        self.transform_matrix = self.transform_matrix.dot(rotation)
+        print(self.transform_matrix)
     

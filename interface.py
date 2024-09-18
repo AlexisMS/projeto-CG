@@ -518,7 +518,15 @@ class MainWindow(QMainWindow):
         pass
 
     def rotate_object(self):
-        pass
+        if self.object_names.currentItem() == None:
+            logging.info("selecione um objeto")
+        else:
+            obj = self.selected_object()
+            angle = float(self.angle_entry.text())
+            obj.transform_basic_rotation(angle)
+            obj.apply_transform()
+            obj.reset_transform()
+            self.redraw_objects()
 
     def rotate_world(self):
         if self.object_names.currentItem() == None:
