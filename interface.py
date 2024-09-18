@@ -515,7 +515,15 @@ class MainWindow(QMainWindow):
             logging.info("objeto transladado " + obj.get_name() +  " em " + obj.get_str_points())
 
     def schedule(self):
-        pass
+        if self.object_names.currentItem() == None:
+            logging.info("selecione um objeto")
+        else:
+            obj = self.selected_object()
+            point = Point(int(self.point_x_entry.text()), int(self.point_y_entry.text()))
+            obj.transform_scaling(point.get_x(), point.get_y())
+            obj.apply_transform()
+            obj.reset_transform()
+            self.redraw_objects()
 
     def rotate_object(self):
         if self.object_names.currentItem() == None:
