@@ -17,6 +17,10 @@ class Point():
         
     def set_y(self, y) -> None:
         self.y = y
+    
+    def get_str_point(self) -> str:
+        return "("+str(self.get_x())+","+str(self.get_y())+")"
+
         
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
@@ -26,7 +30,7 @@ class WireFrame():
         self.transform_matrix = numpy.identity(3)
         self.center = self.get_center()
         #self.transform_matrix = self.transform_matrix.dot(numpy.array([[0,0,0],[0,0,0],[10,10,1]]))
-        print(self.transform_matrix)
+        print(self.get_center().get_str_point())
 
     def get_name(self) -> str:
         return self.name
@@ -72,68 +76,68 @@ class WireFrame():
     def transform_scaling(self,sx,sy):
         distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y(),2))
         if self.center.get_x()>0 and self.center.get_y()>0:
-            self.transform_translate(self, -distance_to_origin, -distance_to_origin)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, distance_to_origin, distance_to_origin)
+            self.transform_translate(-distance_to_origin, -distance_to_origin)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(distance_to_origin, distance_to_origin)
         elif self.center.get_x()>0 and self.center.get_y()<0:
-            self.transform_translate(self, -distance_to_origin, distance_to_origin)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, distance_to_origin, -distance_to_origin)
+            self.transform_translate(-distance_to_origin, distance_to_origin)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(distance_to_origin, -distance_to_origin)
         elif self.center.get_x()<0 and self.center.get_y()<0:
-            self.transform_translate(self, distance_to_origin, distance_to_origin)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, -distance_to_origin, -distance_to_origin)
+            self.transform_translate(distance_to_origin, distance_to_origin)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(-distance_to_origin, -distance_to_origin)
         elif self.center.get_x()==0 and self.center.get_y()>0:
-            self.transform_translate(self, 0, -distance_to_origin)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, 0, distance_to_origin)
+            self.transform_translate(0, -distance_to_origin)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(0, distance_to_origin)
         elif self.center.get_x()==0 and self.center.get_y()<0:
-            self.transform_translate(self, 0, distance_to_origin)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, 0, -distance_to_origin)
+            self.transform_translate(0, distance_to_origin)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(0, -distance_to_origin)
         elif self.center.get_x()>0 and self.center.get_y()==0:
-            self.transform_translate(self, -distance_to_origin, 0)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, distance_to_origin, 0)
+            self.transform_translate(-distance_to_origin, 0)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(distance_to_origin, 0)
         elif self.center.get_x()<0 and self.center.get_y()==0:
-            self.transform_translate(self, distance_to_origin, 0)
-            self.transform_basic_scaling(self,sx,sy)
-            self.transform_translate(self, -distance_to_origin, 0)
+            self.transform_translate(distance_to_origin, 0)
+            self.transform_basic_scaling(sx,sy)
+            self.transform_translate(-distance_to_origin, 0)
         elif self.center.get_x()==0 and self.center.get_y()==0:
-            self.transform_basic_scaling(self,sx,sy)
+            self.transform_basic_scaling(sx,sy)
     
     def transform_rotation(self,angle):
         distance_to_origin = math.sqrt(pow(-self.center.get_x(),2)+pow(-self.center.get_y(),2))
         if self.center.get_x()>0 and self.center.get_y()>0:
-            self.transform_translate(self, -distance_to_origin, -distance_to_origin)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, distance_to_origin, distance_to_origin)
+            self.transform_translate(-distance_to_origin, -distance_to_origin)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(distance_to_origin, distance_to_origin)
         elif self.center.get_x()>0 and self.center.get_y()<0:
-            self.transform_translate(self, -distance_to_origin, distance_to_origin)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, distance_to_origin, -distance_to_origin)
+            self.transform_translate(-distance_to_origin, distance_to_origin)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(distance_to_origin, -distance_to_origin)
         elif self.center.get_x()<0 and self.center.get_y()<0:
-            self.transform_translate(self, distance_to_origin, distance_to_origin)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, -distance_to_origin, -distance_to_origin)
+            self.transform_translate(distance_to_origin, distance_to_origin)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(-distance_to_origin, -distance_to_origin)
         elif self.center.get_x()==0 and self.center.get_y()>0:
-            self.transform_translate(self, 0, -distance_to_origin)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, 0, distance_to_origin)
+            self.transform_translate( 0, -distance_to_origin)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(0, distance_to_origin)
         elif self.center.get_x()==0 and self.center.get_y()<0:
-            self.transform_translate(self, 0, distance_to_origin)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, 0, -distance_to_origin)
+            self.transform_translate(0, distance_to_origin)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(0, -distance_to_origin)
         elif self.center.get_x()>0 and self.center.get_y()==0:
-            self.transform_translate(self, -distance_to_origin, 0)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, distance_to_origin, 0)
+            self.transform_translate(-distance_to_origin, 0)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(distance_to_origin, 0)
         elif self.center.get_x()<0 and self.center.get_y()==0:
-            self.transform_translate(self, distance_to_origin, 0)
-            self.transform_basic_rotation(self,angle)
-            self.transform_translate(self, -distance_to_origin, 0)
+            self.transform_translate(distance_to_origin, 0)
+            self.transform_basic_rotation(angle)
+            self.transform_translate(-distance_to_origin, 0)
         elif self.center.get_x()==0 and self.center.get_y()==0:
-            self.transform_basic_rotation(self,angle)
+            self.transform_basic_rotation(angle)
         
 
     def transform_translate(self, dx, dy):
