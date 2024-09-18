@@ -75,6 +75,7 @@ class WireFrame():
             point_matrix = point_matrix.dot(self.transform_matrix)
             point.set_x(point_matrix[0])
             point.set_y(point_matrix[1])
+        self.set_center()
     
     def transform_scaling(self,sx,sy):
         pivot = self.get_center()
