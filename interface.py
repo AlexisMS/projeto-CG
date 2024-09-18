@@ -548,7 +548,18 @@ class MainWindow(QMainWindow):
             self.redraw_objects()
 
     def rotate_point(self):
-        pass
+        pivot_x = int(self.point_x_entry.text())
+        pivot_y = int(self.point_y_entry.text())
+        pivot = Point(pivot_x,pivot_y) 
+        if self.object_names.currentItem() == None:
+            logging.info("selecione um objeto")
+        else:
+            obj = self.selected_object()
+            angle = float(self.angle_entry.text())
+            obj.transform_rotation(angle,pivot)
+            obj.apply_transform()
+            obj.reset_transform()
+            self.redraw_objects()
     
 
 if __name__ == '__main__':
