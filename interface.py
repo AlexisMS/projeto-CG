@@ -527,10 +527,13 @@ class MainWindow(QMainWindow):
             obj = self.selected_object()
             angle = math.radians(float(self.angle_entry.text()))
             for point in obj.get_points():
-                # point.set_x(point.get_x()*math.cos(angle) - point.get_y()*math.sin(angle))
-                # point.set_y(point.get_x()*math.sin(angle) - point.get_y()*math.cos(angle))
-                point.set_x((point.get_x()*math.cos(angle))+(point.get_y()*math.sin(angle)))
-                point.set_y((point.get_y()*math.cos(angle))-(point.get_x()*math.sin(angle)))
+                px = point.get_x()
+                py = point.get_y()
+                point.set_x((px*math.cos(angle)) - (py*math.sin(angle)))
+                point.set_y((px*math.sin(angle)) - (py*math.cos(angle)))
+                # point.set_x((px*math.cos(angle))+(py*math.sin(angle)))
+                # point.set_y((py*math.cos(angle))-(px*math.sin(angle)))
+
             self.redraw_objects()
             logging.info("rotação de " + str(angle) + " radianos (" + self.angle_entry.text() +" º) aplicada")
             logging.info("objeto rotacionado " + obj.get_name() +  " em " + obj.get_str_points())
