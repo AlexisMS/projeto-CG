@@ -112,36 +112,9 @@ class WireFrame():
     
     def transform_rotation(self,angle, pivot: Point):
         #pivot = self.get_center()
-        if self.center.get_x()>0 and self.center.get_y()>0:
-            self.transform_translate(-pivot.get_x(), -pivot.get_y())
-            self.transform_basic_rotation(angle)
-            self.transform_translate(pivot.get_x(), pivot.get_y())
-        elif self.center.get_x()>0 and self.center.get_y()<0:
-            self.transform_translate(-pivot.get_x(), pivot.get_y())
-            self.transform_basic_rotation(angle)
-            self.transform_translate(pivot.get_x(), -pivot.get_y())
-        elif self.center.get_x()<0 and self.center.get_y()<0:
-            self.transform_translate(pivot.get_x(), pivot.get_y())
-            self.transform_basic_rotation(angle)
-            self.transform_translate(-pivot.get_x(), -pivot.get_y())
-        elif self.center.get_x()==0 and self.center.get_y()>0:
-            self.transform_translate( 0, -pivot.get_y())
-            self.transform_basic_rotation(angle)
-            self.transform_translate(0, pivot.get_y())
-        elif self.center.get_x()==0 and self.center.get_y()<0:
-            self.transform_translate(0, pivot.get_y())
-            self.transform_basic_rotation(angle)
-            self.transform_translate(0, -pivot.get_y())
-        elif self.center.get_x()>0 and self.center.get_y()==0:
-            self.transform_translate(-pivot.get_x(), 0)
-            self.transform_basic_rotation(angle)
-            self.transform_translate(pivot.get_x(), 0)
-        elif self.center.get_x()<0 and self.center.get_y()==0:
-            self.transform_translate(pivot.get_x(), 0)
-            self.transform_basic_rotation(angle)
-            self.transform_translate(-pivot.get_x(), 0)
-        elif self.center.get_x()==0 and self.center.get_y()==0:
-            self.transform_basic_rotation(angle)
+        self.transform_translate(-pivot.get_x(), -pivot.get_y())
+        self.transform_basic_rotation(angle)
+        self.transform_translate(pivot.get_x(), pivot.get_y())
         
 
     def transform_translate(self, dx, dy):
