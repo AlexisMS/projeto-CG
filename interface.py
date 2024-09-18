@@ -126,16 +126,17 @@ class MainWindow(QMainWindow):
         # Cenário
         self.scene = QGraphicsScene()
         self.scene.setBackgroundBrush(QColor('grey'))
-        # self.scene.setSceneRect(-400,-300,800,600)
+        self.scene.setSceneRect(0,-0,800,600)
 
         # Viewport
         self.viewport = QGraphicsView(self.scene)
+        # self.viewport.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.viewport.setFixedSize(800, 600)
         self.viewport.setMinimumHeight(0)
         self.viewport.setMinimumWidth(0)
         self.viewport.setMaximumHeight(600)
         self.viewport.setMaximumWidth(800)
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
@@ -325,8 +326,14 @@ class MainWindow(QMainWindow):
     def draw_lines_coords(self):
         self.pen.setWidth(2)
         self.pen.setColor(QColor("black"))
-        self.scene.addLine(-10000, self.windows.get_center().get_y(), 10000, self.windows.get_center().get_y(), self.pen)
-        self.scene.addLine(self.windows.get_center().get_x(), -10000, self.windows.get_center().get_x(), 10000, self.pen)
+        x1 = self.viewport_transform(Point(-10000, self.windows.get_center().get_y()))
+        x2 = self.viewport_transform(Point(10000, self.windows.get_center().get_y()))
+
+        y1 = self.viewport_transform(Point(self.windows.get_center().get_x(), -10000))
+        y2 = self.viewport_transform(Point(self.windows.get_center().get_x(), 10000))
+
+        self.scene.addLine(x1.get_x(), x1.get_y(), x2.get_x(), x2.get_y(), self.pen)
+        self.scene.addLine(y1.get_x(), y1.get_y(), y2.get_x(), y2.get_y(), self.pen)
 
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
@@ -351,8 +358,9 @@ class MainWindow(QMainWindow):
         shift.set_x(0)
         shift.set_y(0)
         self.windows.update_center()
-
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        
+        self.viewport.setSceneRect(0, 0, 800, 600)
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window centralizada')
 
@@ -363,7 +371,9 @@ class MainWindow(QMainWindow):
         shift.set_x(shift.get_x() + 20)
         self.windows.update_center()
 
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        rect = self.viewport.sceneRect()
+        self.viewport.setSceneRect(rect.left()+20, rect.top(), 800, 600)
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
@@ -374,7 +384,9 @@ class MainWindow(QMainWindow):
         shift.set_x(shift.get_x() - 20)
         self.windows.update_center()
 
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        rect = self.viewport.sceneRect()
+        self.viewport.setSceneRect(rect.left()-20, rect.top(), 800, 600)
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
@@ -385,7 +397,9 @@ class MainWindow(QMainWindow):
         shift.set_y(shift.get_y() + 15)
         self.windows.update_center()
 
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        rect = self.viewport.sceneRect()
+        self.viewport.setSceneRect(rect.left(), rect.top()+15, 800, 600)
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
@@ -396,7 +410,9 @@ class MainWindow(QMainWindow):
         shift.set_y(shift.get_y() - 15)
         self.windows.update_center()
 
-        self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
+        rect = self.viewport.sceneRect()
+        self.viewport.setSceneRect(rect.left(), rect.top()-15, 800, 600)
+        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
 
         logging.info('window deslocada')
 
