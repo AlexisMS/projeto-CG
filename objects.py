@@ -109,8 +109,8 @@ class WireFrame():
         elif self.center.get_x()==0 and self.center.get_y()==0:
             self.transform_basic_scaling(sx,sy)
     
-    def transform_rotation(self,angle):
-        pivot = self.get_center()
+    def transform_rotation(self,angle, pivot: Point):
+        #pivot = self.get_center()
         if self.center.get_x()>0 and self.center.get_y()>0:
             self.transform_translate(-pivot.get_x(), -pivot.get_y())
             self.transform_basic_rotation(angle)
