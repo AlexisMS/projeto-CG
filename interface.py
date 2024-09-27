@@ -1,12 +1,12 @@
-import sys, logging, math
+import sys, logging
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
-#from PySide6.Qt import *
 
 from display_file import DisplayFile
 from window import Window
 from objects import WireFrame, Point
+from transform_functions import *
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -22,9 +22,7 @@ class QTextEditLogger(logging.Handler):
 class NewObjectDialog(QWidget):
     def __init__(self, point_amount: int):
         super().__init__()
-
         self.points = []
-
         self.x_label = []
         self.x_coord = []
         self.y_label = []
@@ -38,7 +36,6 @@ class NewObjectDialog(QWidget):
 
         self.buttonCreateObject = QPushButton("Criar objeto")
         self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount))
-        
         self.point_layout = []
         self.point_widget = []
         for n in range(point_amount):
@@ -60,12 +57,9 @@ class NewObjectDialog(QWidget):
 
         # Configura o layout
         self.layout = QVBoxLayout()
-        
         self.layout.addWidget(self.name_widget)
-
         for n in range(point_amount):
             self.layout.addWidget(self.point_widget[n])
-
         self.layout.addWidget(self.buttonCreateObject)
         self.setLayout(self.layout)
         self.setWindowTitle("Novo Objeto")
@@ -84,7 +78,6 @@ class NewObjectDialog(QWidget):
             if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
                 empty_coord = True
                 break
-
         # Cancela criação de objetos se não cumprir algum requisito
         if self.name_entry.text() == "" or empty_coord:
             logging.info("wireframe não criado: campos precisam ser preenchidos")
@@ -92,17 +85,12 @@ class NewObjectDialog(QWidget):
         else:
             for n in range(point_ammount):
                 self.new_Point(n)
-
-            obj = WireFrame(self.name_entry.text().upper(), self.points)
-            
-            # self.windows.get_display_file().add_object(obj)
+            obj = WireFrame(self.name_entry.text().upper(), self.points)            
             screen.draw_object(obj)
             screen.update_objects_names()
-
             message = ("wireframe "+obj.get_name()+"<"
                        +obj.get_type()+"> criado em "
                        +obj.get_str_points())
-            
             logging.info(message)
             self.close()
     
@@ -316,17 +304,13 @@ class MainWindow(QMainWindow):
         self.windows_layout.addWidget(self.log_widget, 1)
         self.windows_ui = QWidget()
         self.windows_ui.setLayout(self.windows_layout)
-
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.windows_ui)
-
         self.draw_lines_coords()
-        
         print(self.viewport.minimumWidth(), self.viewport.maximumWidth())
         print(self.viewport.minimumHeight(), self.viewport.maximumHeight())
         print(self.windows.get_xmin(), self.windows.get_ymin())
         print(self.windows.get_xmax(), self.windows.get_ymax())
-
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
@@ -334,10 +318,8 @@ class MainWindow(QMainWindow):
         self.pen.setColor(QColor("black"))
         x1 = self.viewport_transform(Point(-10000, self.windows.get_center().get_y()))
         x2 = self.viewport_transform(Point(10000, self.windows.get_center().get_y()))
-
         y1 = self.viewport_transform(Point(self.windows.get_center().get_x(), -10000))
         y2 = self.viewport_transform(Point(self.windows.get_center().get_x(), 10000))
-
         self.scene.addLine(x1.get_x(), x1.get_y(), x2.get_x(), x2.get_y(), self.pen)
         self.scene.addLine(y1.get_x(), y1.get_y(), y2.get_x(), y2.get_y(), self.pen)
 
@@ -363,11 +345,8 @@ class MainWindow(QMainWindow):
         self.windows.set_ymin(self.windows.get_ymin() - shift.get_y())
         shift.set_x(0)
         shift.set_y(0)
-        self.windows.update_center()
-        
+        self.windows.update_center()        
         self.viewport.setSceneRect(0, 0, 800, 600)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
-
         logging.info('window centralizada')
 
     def nav_left(self) -> None:
@@ -376,11 +355,8 @@ class MainWindow(QMainWindow):
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() + 20)
         self.windows.update_center()
-
         rect = self.viewport.sceneRect()
         self.viewport.setSceneRect(rect.left()+20, rect.top(), 800, 600)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
-
         logging.info('window deslocada')
 
     def nav_right(self) -> None:
@@ -389,11 +365,8 @@ class MainWindow(QMainWindow):
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() - 20)
         self.windows.update_center()
-
         rect = self.viewport.sceneRect()
         self.viewport.setSceneRect(rect.left()-20, rect.top(), 800, 600)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
-
         logging.info('window deslocada')
 
     def nav_up(self) -> None:
@@ -402,11 +375,8 @@ class MainWindow(QMainWindow):
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() + 15)
         self.windows.update_center()
-
         rect = self.viewport.sceneRect()
         self.viewport.setSceneRect(rect.left(), rect.top()+15, 800, 600)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
-
         logging.info('window deslocada')
 
     def nav_down(self) -> None:
@@ -415,11 +385,8 @@ class MainWindow(QMainWindow):
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() - 15)
         self.windows.update_center()
-
         rect = self.viewport.sceneRect()
         self.viewport.setSceneRect(rect.left(), rect.top()-15, 800, 600)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
-
         logging.info('window deslocada')
 
     def update_objects_names(self) -> None:
@@ -430,45 +397,33 @@ class MainWindow(QMainWindow):
     def draw(self, obj: WireFrame):
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
-
         if obj.get_type() == 1:
             point = obj.get_points()[0]
-            
             transformed_point = self.viewport_transform(point)
-
             self.scene.addLine(
                 transformed_point.get_x(), transformed_point.get_y(),
                 transformed_point.get_x(), transformed_point.get_y(), self.pen)
-            
         elif obj.get_type() == 2:
             first_point = obj.get_points()[0]
             last_point = obj.get_points()[-1]
-
             first_transformed_point = self.viewport_transform(first_point)
             last_transformed_point = self.viewport_transform(last_point)
-
             self.scene.addLine(
                 first_transformed_point.get_x(), first_transformed_point.get_y(),
                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-            
         else:
             first_point = obj.get_points()[0]
             last_point = obj.get_points()[-1]
-
             first_transformed_point = self.viewport_transform(first_point)
             last_transformed_point = self.viewport_transform(last_point)
-            
             for i in range(len(obj.get_points())-1):
                 f_point = obj.get_points()[i]
                 l_point = obj.get_points()[i+1]
-
                 f_transformed_point = self.viewport_transform(f_point)
                 l_transformed_point = self.viewport_transform(l_point)
-
                 self.scene.addLine(
                 f_transformed_point.get_x(), f_transformed_point.get_y(),
                 l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
-
             self.scene.addLine(
                 last_transformed_point.get_x(), last_transformed_point.get_y(),
                 first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
@@ -481,14 +436,11 @@ class MainWindow(QMainWindow):
         xvp = (point.get_x() - self.windows.get_xmin())
         xvp = xvp / (self.windows.get_xmax() - self.windows.get_xmin())
         xvp = xvp * (self.viewport.maximumWidth() - self.viewport.minimumWidth())
-        
         yvp = (point.get_y() - self.windows.get_ymin())
         yvp = yvp / (self.windows.get_ymax() - self.windows.get_ymin())
         yvp = 1 - yvp
         yvp = yvp * (self.viewport.maximumHeight() - self.viewport.minimumHeight())
-        
         transformed_point = Point(xvp, yvp)
-
         return transformed_point
     
     def selected_object(self) -> WireFrame:
@@ -523,9 +475,11 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             point = Point(float(self.point_x_entry.text()), float(self.point_y_entry.text()))
-            obj.transform_scaling(point.get_x(), point.get_y())
+            matriz = transform_scaling(point.get_x(), point.get_y(), obj.get_center())
+            obj.update_transform(matriz)
             obj.apply_transform()
             obj.reset_transform()
+
             self.redraw_objects()
 
     def rotate_object(self):
@@ -534,7 +488,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            obj.transform_rotation(angle,obj.get_center())
+            matriz = transform_rotation(angle, obj.get_center())
+            obj.update_transform(matriz)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
@@ -545,7 +500,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            obj.transform_rotation(angle,Point(0,0))
+            matriz = transform_rotation(angle, Point(0,0))
+            obj.update_transform(matriz)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
@@ -559,7 +515,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            obj.transform_rotation(angle,pivot)
+            matriz = transform_rotation(angle, pivot)
+            obj.update_transform(matriz)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
