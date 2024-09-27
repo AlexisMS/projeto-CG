@@ -85,7 +85,7 @@ class NewObjectDialog(QWidget):
         else:
             for n in range(point_ammount):
                 self.new_Point(n)
-            obj = WireFrame(self.name_entry.text().upper(), self.points, self.points)
+            obj = WireFrame(self.name_entry.text().upper(), self.points)
             obj.apply_normalized(normalized_matrix)
             screen.draw_object(obj)
             screen.update_objects_names()
@@ -97,8 +97,8 @@ class NewObjectDialog(QWidget):
     
 
 class SubWindows():
-    def open_NewObjectDialog(self, point_amount: int):
-        self.new_window = NewObjectDialog(point_amount)
+    def open_NewObjectDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
+        self.new_window = NewObjectDialog(point_amount, normalized_matrix)
         self.new_window.show()
 
 
@@ -299,20 +299,28 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.windows_ui)
 
+        self.windows.update_normalization_matrix()
         self.draw_lines_coords()
-        self.windows.build_normalization_matrix()
 
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
         self.pen.setWidth(2)
         self.pen.setColor(QColor("black"))
-        x1 = self.viewport_transform(Point(-10000, self.windows.get_center().get_y()))
-        x2 = self.viewport_transform(Point(10000, self.windows.get_center().get_y()))
-        y1 = self.viewport_transform(Point(self.windows.get_center().get_x(), -10000))
-        y2 = self.viewport_transform(Point(self.windows.get_center().get_x(), 10000))
-        self.scene.addLine(x1.get_x(), x1.get_y(), x2.get_x(), x2.get_y(), self.pen)
-        self.scene.addLine(y1.get_x(), y1.get_y(), y2.get_x(), y2.get_y(), self.pen)
+        x1 = numpy.array([-10000, self.windows.get_center().get_y(), 1])
+        x1 = x1.dot(self.windows.get_normalization_matrix())
+        x2 = numpy.array([10000, self.windows.get_center().get_y(), 1])
+        x2 = x2.dot(self.windows.get_normalization_matrix())
+        y1 = numpy.array([self.windows.get_center().get_x(), -10000, 1])
+        y1 = y1.dot(self.windows.get_normalization_matrix())
+        y2 = numpy.array([self.windows.get_center().get_x(), 10000, 1])
+        y2 = y2.dot(self.windows.get_normalization_matrix())
+        p1 = self.viewport_transform(Point(x1[0], x1[1]))
+        p2 = self.viewport_transform(Point(x2[0], x2[1]))
+        p3 = self.viewport_transform(Point(y1[0], y1[1]))
+        p4 = self.viewport_transform(Point(y2[0], y2[1]))
+        self.scene.addLine(p1.get_x(), p1.get_y(), p2.get_x(), p2.get_y(), self.pen)
+        self.scene.addLine(p3.get_x(), p3.get_y(), p4.get_x(), p4.get_y(), self.pen)
 
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
@@ -389,27 +397,27 @@ class MainWindow(QMainWindow):
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
         if obj.get_type() == 1:
-            point = obj.get_points()[0]
+            point = obj.get_normalized_points()[0]
             transformed_point = self.viewport_transform(point)
             self.scene.addLine(
                 transformed_point.get_x(), transformed_point.get_y(),
                 transformed_point.get_x(), transformed_point.get_y(), self.pen)
         elif obj.get_type() == 2:
-            first_point = obj.get_points()[0]
-            last_point = obj.get_points()[-1]
+            first_point = obj.get_normalized_points()[0]
+            last_point = obj.get_normalized_points()[-1]
             first_transformed_point = self.viewport_transform(first_point)
             last_transformed_point = self.viewport_transform(last_point)
             self.scene.addLine(
                 first_transformed_point.get_x(), first_transformed_point.get_y(),
                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
         else:
-            first_point = obj.get_points()[0]
-            last_point = obj.get_points()[-1]
+            first_point = obj.get_normalized_points()[0]
+            last_point = obj.get_normalized_points()[-1]
             first_transformed_point = self.viewport_transform(first_point)
             last_transformed_point = self.viewport_transform(last_point)
-            for i in range(len(obj.get_points())-1):
-                f_point = obj.get_points()[i]
-                l_point = obj.get_points()[i+1]
+            for i in range(len(obj.get_normalized_points())-1):
+                f_point = obj.get_normalized_points()[i]
+                l_point = obj.get_normalized_points()[i+1]
                 f_transformed_point = self.viewport_transform(f_point)
                 l_transformed_point = self.viewport_transform(l_point)
                 self.scene.addLine(
@@ -424,11 +432,11 @@ class MainWindow(QMainWindow):
         self.windows.get_display_file().add_object(obj)
 
     def viewport_transform(self, point: Point) -> Point:
-        xvp = (point.get_x() - self.windows.get_xmin())
-        xvp = xvp / (self.windows.get_xmax() - self.windows.get_xmin())
+        xvp = (point.get_x() - self.windows.get_xmin_normalized())
+        xvp = xvp / (self.windows.get_xmax_normalized() - self.windows.get_xmin_normalized())
         xvp = xvp * (self.viewport.maximumWidth() - self.viewport.minimumWidth())
-        yvp = (point.get_y() - self.windows.get_ymin())
-        yvp = yvp / (self.windows.get_ymax() - self.windows.get_ymin())
+        yvp = (point.get_y() - self.windows.get_ymin_normalized())
+        yvp = yvp / (self.windows.get_ymax_normalized() - self.windows.get_ymin_normalized())
         yvp = 1 - yvp
         yvp = yvp * (self.viewport.maximumHeight() - self.viewport.minimumHeight())
         transformed_point = Point(xvp, yvp)
@@ -445,7 +453,8 @@ class MainWindow(QMainWindow):
         self.draw_lines_coords()
         objects = self.windows.get_display_file().get_objects()
         for obj in objects:
-            self.apply_normalized(self.windows.get)
+            obj.clear_normalized_points()
+            obj.apply_normalized(self.windows.get_normalization_matrix())
             self.draw(obj)
 
     def translate(self):
@@ -517,7 +526,8 @@ class MainWindow(QMainWindow):
     def rotate_window(self):
         angle = float(self.angle_entry.text())
         self.windows.set_angle(angle)
-        self.windows.build_normalization_matrix()
+        self.windows.update_normalization_matrix()
+        self.redraw_objects()
     
 
 if __name__ == '__main__':

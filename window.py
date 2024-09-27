@@ -10,22 +10,38 @@ class Window():
         self.ymin = ymin
         self.xmax = xmax
         self.ymax = ymax
+        self.xmin_normalized = None
+        self.ymin_normalized = None
+        self.xmax_normalized = None
+        self.ymax_normalized = None
         self.shift = Point(0,0)
         self.center = Point((xmax + xmin)/2, (ymax + ymin)/2)
         self.display_file = display_file
         self.normalization_matrix = numpy.identity(3)
         self.angle = 0
         self.zoom = 0
+        self.update_normalization_matrix()
 
     def get_normalization_matrix(self) -> numpy.ndarray:
         return self.normalization_matrix
+    
+    def update_normalized_coord(self) -> None:
+        coord_min = numpy.array([self.xmin, self.ymin, 1])
+        coord_min = coord_min.dot(self.normalization_matrix)
+        coord_max = numpy.array([self.xmax, self.ymax, 1])
+        coord_max = coord_max.dot(self.normalization_matrix)
+        self.xmin_normalized = coord_min[0]
+        self.ymin_normalized = coord_min[1]
+        self.xmax_normalized = coord_max[0]
+        self.ymax_normalized = coord_max[1]
 
     def update_normalization_matrix(self) -> None:
         height = self.ymax - self.ymin
         widht = self.xmax - self.xmin
         self.normalization_matrix = build_normalization_matrix(height, widht, self.shift, self.angle)
+        self.update_normalized_coord()
 
-    def set_angle(self, angle):
+    def set_angle(self, angle) -> None:
         self.angle -= angle
 
     def get_shift(self) -> Point:
@@ -40,17 +56,29 @@ class Window():
     def get_display_file(self) -> DisplayFile:
         return self.display_file
     
-    def get_xmax(self) -> int:
+    def get_xmax(self) -> float:
         return self.xmax
     
-    def get_ymax(self) -> int:
+    def get_ymax(self) -> float:
         return self.ymax
     
-    def get_xmin(self) -> int:
+    def get_xmin(self) -> float:
         return self.xmin
     
-    def get_ymin(self) -> int:
+    def get_ymin(self) -> float:
         return self.ymin
+    
+    def get_xmax_normalized(self) -> float:
+        return self.xmax_normalized
+    
+    def get_ymax_normalized(self) -> float:
+        return self.ymax_normalized
+    
+    def get_xmin_normalized(self) -> float:
+        return self.xmin_normalized
+    
+    def get_ymin_normalized(self) -> float:
+        return self.ymin_normalized
     
     def set_xmax(self, xmax: int) -> None:
         self.xmax = xmax
