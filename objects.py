@@ -44,7 +44,6 @@ class WireFrame():
             str_point += "("+str(p.get_x())+","+str(p.get_y())+")"
         return str_point
     
-
     def set_center(self) -> Point:
         xsum = 0
         ysum = 0
@@ -62,8 +61,8 @@ class WireFrame():
     def get_transform(self) -> numpy.ndarray:
         return self.transform_matrix
     
-    def update_transform(self, matriz: numpy.ndarray) -> None:
-        self.transform_matrix = self.transform_matrix.dot(matriz)
+    def update_transform(self, matrix: numpy.ndarray) -> None:
+        self.transform_matrix = self.transform_matrix.dot(matrix)
 
     def reset_transform(self) -> None:
         self.transform_matrix = numpy.identity(3)

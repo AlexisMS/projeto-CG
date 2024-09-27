@@ -1,5 +1,7 @@
 from display_file import DisplayFile
 from objects import Point
+from transform_functions import *
+import numpy
 
 
 class Window():
@@ -11,7 +13,15 @@ class Window():
         self.shift = Point(0,0)
         self.center = Point((xmax + xmin)/2, (ymax + ymin)/2)
         self.display_file = display_file
+        self.normalization_matrix = numpy.identity(3)
+        self.angle = 0
         self.zoom = 0
+
+    def build_normalization_matrix(self) -> None:
+        pass
+
+    def set_angle(self, angle):
+        self.angle += angle
 
     def get_shift(self) -> Point:
         return self.shift

@@ -105,32 +105,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Cria window
-        self.windows = Window(-400,-300,400,300, DisplayFile())
-
-        # Janelas Extras
-        self.subWindows = SubWindows()
-
-        # Cenário
-        self.scene = QGraphicsScene()
+        self.windows = Window(-400,-300,400,300, DisplayFile()) # Window
+        self.subWindows = SubWindows() # Janelas Extras
+        self.scene = QGraphicsScene() # Cenário
         self.scene.setBackgroundBrush(QColor('grey'))
         self.scene.setSceneRect(0,-0,800,600)
 
-        # Viewport
-        self.viewport = QGraphicsView(self.scene)
-        # self.viewport.setTransformationAnchor(QGraphicsView.NoAnchor)
+        self.viewport = QGraphicsView(self.scene) # Viewport
         self.viewport.setFixedSize(800, 600)
         self.viewport.setMinimumHeight(0)
         self.viewport.setMinimumWidth(0)
         self.viewport.setMaximumHeight(600)
         self.viewport.setMaximumWidth(800)
-        # self.viewport.centerOn(self.windows.get_center().get_x(), self.windows.get_center().get_y())
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
 
-        # Interface de Log
-        self.logTextBox = QTextEditLogger()
+        self.logTextBox = QTextEditLogger()# Interface de Log
         self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logging.getLogger().addHandler(self.logTextBox)
         logging.getLogger().setLevel(logging.DEBUG)
@@ -306,11 +297,10 @@ class MainWindow(QMainWindow):
         self.windows_ui.setLayout(self.windows_layout)
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.windows_ui)
+
         self.draw_lines_coords()
-        print(self.viewport.minimumWidth(), self.viewport.maximumWidth())
-        print(self.viewport.minimumHeight(), self.viewport.maximumHeight())
-        print(self.windows.get_xmin(), self.windows.get_ymin())
-        print(self.windows.get_xmax(), self.windows.get_ymax())
+        self.windows.build_normalization_matrix()
+
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
@@ -475,8 +465,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             point = Point(float(self.point_x_entry.text()), float(self.point_y_entry.text()))
-            matriz = transform_scaling(point.get_x(), point.get_y(), obj.get_center())
-            obj.update_transform(matriz)
+            matrix = transform_scaling(point.get_x(), point.get_y(), obj.get_center())
+            obj.update_transform(matrix)
             obj.apply_transform()
             obj.reset_transform()
 
@@ -488,8 +478,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            matriz = transform_rotation(angle, obj.get_center())
-            obj.update_transform(matriz)
+            matrix = transform_rotation(-angle, obj.get_center())
+            obj.update_transform(matrix)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
@@ -500,8 +490,8 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            matriz = transform_rotation(angle, Point(0,0))
-            obj.update_transform(matriz)
+            matrix = transform_rotation(-angle, Point(0,0))
+            obj.update_transform(matrix)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
@@ -515,14 +505,16 @@ class MainWindow(QMainWindow):
         else:
             obj = self.selected_object()
             angle = float(self.angle_entry.text())
-            matriz = transform_rotation(angle, pivot)
-            obj.update_transform(matriz)
+            matrix = transform_rotation(-angle, pivot)
+            obj.update_transform(matrix)
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
 
     def rotate_window(self):
-        pass
+        angle = float(self.angle_entry.text())
+        self.windows.set_angle(angle)
+        self.windows.build_normalization_matrix()
     
 
 if __name__ == '__main__':
