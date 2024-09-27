@@ -20,7 +20,7 @@ class QTextEditLogger(logging.Handler):
 
 
 class NewObjectDialog(QWidget):
-    def __init__(self, point_amount: int):
+    def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
         super().__init__()
         self.points = []
         self.x_label = []
@@ -35,7 +35,7 @@ class NewObjectDialog(QWidget):
             self.y_coord.append(QLineEdit())
 
         self.buttonCreateObject = QPushButton("Criar objeto")
-        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount))
+        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount, normalized_matrix))
         self.point_layout = []
         self.point_widget = []
         for n in range(point_amount):
@@ -71,7 +71,7 @@ class NewObjectDialog(QWidget):
         self.points.append(Point(x, y))
     
     @Slot()
-    def new_Object(self, point_ammount: int) -> None:
+    def new_Object(self, point_ammount: int, normalized_matrix: numpy.ndarray) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -85,7 +85,8 @@ class NewObjectDialog(QWidget):
         else:
             for n in range(point_ammount):
                 self.new_Point(n)
-            obj = WireFrame(self.name_entry.text().upper(), self.points)            
+            obj = WireFrame(self.name_entry.text().upper(), self.points, self.points)
+            obj.apply_normalized(normalized_matrix)
             screen.draw_object(obj)
             screen.update_objects_names()
             message = ("wireframe "+obj.get_name()+"<"
@@ -136,7 +137,7 @@ class MainWindow(QMainWindow):
         self.create_object_point_amount_widget = QWidget()
         self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
         self.create_object_button = QPushButton("Novo Objeto")
-        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value()))
+        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
 
         # SOMENTE PARA TESTES
         # self.scene.addRect(1000, 75, 600, 450)
@@ -440,9 +441,11 @@ class MainWindow(QMainWindow):
     
     def redraw_objects(self):
         self.scene.clear()
+        self.windows.update_normalization_matrix()
         self.draw_lines_coords()
         objects = self.windows.get_display_file().get_objects()
         for obj in objects:
+            self.apply_normalized(self.windows.get)
             self.draw(obj)
 
     def translate(self):

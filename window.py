@@ -17,11 +17,16 @@ class Window():
         self.angle = 0
         self.zoom = 0
 
-    def build_normalization_matrix(self) -> None:
-        pass
+    def get_normalization_matrix(self) -> numpy.ndarray:
+        return self.normalization_matrix
+
+    def update_normalization_matrix(self) -> None:
+        height = self.ymax - self.ymin
+        widht = self.xmax - self.xmin
+        self.normalization_matrix = build_normalization_matrix(height, widht, self.shift, self.angle)
 
     def set_angle(self, angle):
-        self.angle += angle
+        self.angle -= angle
 
     def get_shift(self) -> Point:
         return self.shift

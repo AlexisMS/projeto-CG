@@ -22,12 +22,20 @@ class Point():
 
         
 class WireFrame():
-    def __init__(self, name: str, points: list[Point]):
+    def __init__(self, name: str, points: list[Point], normalized_points: list[Point]):
         self.name = name
         self.type = str(len(points))
         self.points = points
+        self.normalized_points = normalized_points
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
+
+    def apply_normalized(self, normalized_matrix):
+        for point in self.normalized_points:
+            point_matrix = numpy.array([point.get_x(), point.get_y(), 1])
+            point_matrix = point_matrix.dot(normalized_matrix)
+            point.set_x(point_matrix[0])
+            point.set_y(point_matrix[1])
 
     def get_name(self) -> str:
         return self.name
