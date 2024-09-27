@@ -193,11 +193,13 @@ class MainWindow(QMainWindow):
         self.rotate_world_button = QPushButton("mundo")
         self.rotate_object_button = QPushButton("objeto")
         self.rotate_point_button = QPushButton("ponto")
+        self.rotate_window_button = QPushButton("janela")
         self.translate_button.clicked.connect(self.translate)
         self.schedule_button.clicked.connect(self.schedule)
         self.rotate_object_button.clicked.connect(self.rotate_object)
         self.rotate_world_button.clicked.connect(self.rotate_world)
         self.rotate_point_button.clicked.connect(self.rotate_point)
+        self.rotate_window_button.clicked.connect(self.rotate_window)
 
         # Inicio dos layouts
         # Layout do menu dos objetos
@@ -258,10 +260,11 @@ class MainWindow(QMainWindow):
         self.left_schedule_translate_menu = QGroupBox("Deslocamento")
         self.left_schedule_translate_menu.setLayout(self.left_schedule_translate_layout)
 
-        self.rotate_layout = QHBoxLayout()
-        self.rotate_layout.addWidget(self.rotate_world_button)
-        self.rotate_layout.addWidget(self.rotate_object_button)
-        self.rotate_layout.addWidget(self.rotate_point_button)
+        self.rotate_layout = QGridLayout()
+        self.rotate_layout.addWidget(self.rotate_world_button, 1, 1)
+        self.rotate_layout.addWidget(self.rotate_object_button, 1, 2)
+        self.rotate_layout.addWidget(self.rotate_point_button, 1, 3)
+        self.rotate_layout.addWidget(self.rotate_window_button, 2, 1, 1, 3)
         self.rotate_menu = QGroupBox("Rotação")
         self.rotate_menu.setLayout(self.rotate_layout)
 
@@ -560,6 +563,9 @@ class MainWindow(QMainWindow):
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
+
+    def rotate_window(self):
+        pass
     
 
 if __name__ == '__main__':
