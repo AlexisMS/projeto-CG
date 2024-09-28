@@ -16,6 +16,8 @@ class ObjHander():
             count = obj.get_type()
             if count == 1:
                 file.write("p -1\n")
+            elif count == 2:
+                file.write("l -2 -1")
             else:
                 file.write("f ")
                 while (count > 0):
@@ -27,6 +29,29 @@ class ObjHander():
     def open_file(filename: str):
         if(not filename.endswith(".obj")):
             filename = filename + ".obj"
-        file = open(filename, "a")
-
+        file = open(filename, "r")
+        objects = []
+        points = []
+        names = []
+        params = []
+        for line in file:
+            if(line.startswith("o ")):
+                split = line.split()
+                names.append(split[1])
+            elif(line.startswith("v")):
+                split = line.split()
+                points.append(Point(split[1],split[2]))
+            elif(line.startswith("p") or line.startswith("l") or line.startswith("f")):
+                params.append(line)
+        for position, new_obj_name in enumerate(names):
+            param = params[position]
+            param = param.split()
+            param.pop(0)
+            obj_points = []
+            obj_type = len(param)
+            count = obj_type
+            while (count > 0):
+                obj_points.append(points.pop(0))
+                count -= 1
+            objects.append(WireFrame(new_obj_name, obj_points))
         file.close()
