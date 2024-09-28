@@ -4,30 +4,29 @@ class ObjHander():
     def __init__():
         pass
 
-    def new_file(self, filename: str):
+    def save_file(filename: str, target: list[WireFrame]):
         if(not filename.endswith(".obj")):
             filename = filename + ".obj"
-        self.file = open(filename, "a")
-
-    def add_obj_to_file(self, target: WireFrame):
-        if(self.file):
-            points = target.get_points()
+        file = open(filename, "x")
+        for obj in target:
+            points = obj.get_points()
             for p in points:
-                self.file.write("v " + str(p.get_x()) + " " + str(p.get_y()) + " 0.0\n")
-            self.file.write("o " + target.get_name() + "\n")
-            count = target.get_type()
+                file.write("v " + str(p.get_x()) + " " + str(p.get_y()) + " 0.0\n")
+            file.write("o " + obj.get_name() + "\n")
+            count = obj.get_type()
             if count == 1:
-                self.file.write("p -1\n")
+                file.write("p -1\n")
             else:
-                self.file.write("f ")
+                file.write("f ")
                 while (count > 0):
-                    self.file.write("-" + str(count) + " ")
+                    file.write("-" + str(count) + " ")
                     count -= 1
-                self.file.write("\n")
+                file.write("\n")
+        file.close()
 
-    def close_file(self):
-        if(self.file):
-            self.file.close()
+    def open_file(filename: str):
+        if(not filename.endswith(".obj")):
+            filename = filename + ".obj"
+        file = open(filename, "a")
 
-    def open_file():
-        pass
+        file.close()
