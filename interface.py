@@ -7,6 +7,7 @@ from display_file import DisplayFile
 from window import Window
 from objects import WireFrame, Point
 from transform_functions import *
+from objhandler import ObjHandler
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -36,6 +37,10 @@ class NewObjectDialog(QWidget):
 
         self.buttonCreateObject = QPushButton("Criar objeto")
         self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount, normalized_matrix))
+        self.file_label = QLabel("Nome do arquivo")
+        self.file_name = QLineEdit()
+        self.file_open_button = QPushButton("Ler arquivo")
+        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
         self.point_layout = []
         self.point_widget = []
         for n in range(point_amount):
@@ -61,6 +66,9 @@ class NewObjectDialog(QWidget):
         for n in range(point_amount):
             self.layout.addWidget(self.point_widget[n])
         self.layout.addWidget(self.buttonCreateObject)
+        self.layout.addWidget(self.file_label)
+        self.layout.addWidget(self.file_name)
+        self.layout.addWidget(self.file_open_button)
         self.setLayout(self.layout)
         self.setWindowTitle("Novo Objeto")
     
@@ -94,6 +102,20 @@ class NewObjectDialog(QWidget):
                        +obj.get_str_points())
             logging.info(message)
             self.close()
+
+    @Slot()
+    def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
+        handler = ObjHandler()
+        new_objects = handler.open_file(file_name)
+        for obj in new_objects:
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+        self.close()
     
 
 class SubWindows():
@@ -181,6 +203,12 @@ class MainWindow(QMainWindow):
         self.rotate_point_button.clicked.connect(self.rotate_point)
         self.rotate_window_button.clicked.connect(self.rotate_window)
 
+        # partes do salvamento de arquivo
+        self.file_name_label = QLabel("Nome do Arquivo")
+        self.file_name_entry = QLineEdit()
+        self.file_save_button = QPushButton("Salvar")
+        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
+
         # Inicio dos layouts
         # Layout do menu dos objetos
         # Contém a lista de objetos e botão de criar objetos
@@ -255,6 +283,14 @@ class MainWindow(QMainWindow):
         self.left_transform_menu = QGroupBox("Transformações")
         self.left_transform_menu.setLayout(self.left_transform_layout)
 
+        # Layout do menu de salvar em arquivo
+        self.left_file_layout = QVBoxLayout()
+        self.left_file_layout.addWidget(self.file_name_label)
+        self.left_file_layout.addWidget(self.file_name_entry)
+        self.left_file_layout.addWidget(self.file_save_button)
+        self.left_file_menu = QGroupBox("Salvar em Arquivo")
+        self.left_file_menu.setLayout(self.left_file_layout)
+
         # Layout do menu
         # Contém lista de objetos e funções de zoom e navegação
         self.left_menu_layout = QVBoxLayout()
@@ -262,6 +298,7 @@ class MainWindow(QMainWindow):
         self.left_menu_layout.addWidget(self.left_zoom_menu)
         self.left_menu_layout.addWidget(self.left_nav_menu)
         self.left_menu_layout.addWidget(self.left_transform_menu)
+        self.left_menu_layout.addWidget(self.left_file_menu)
         self.left_menu = QGroupBox()
         self.left_menu.setLayout(self.left_menu_layout)
 
@@ -536,6 +573,11 @@ class MainWindow(QMainWindow):
         self.windows.update_normalization_matrix()
         self.redraw_objects()
         logging.info('window rotacionada')
+
+    def save_file(self, file_name: str, objects: list[WireFrame]):
+        handler = ObjHandler()
+        handler.save_file(file_name, objects)
+        logging.info("arquivo " + file_name + " criado")
     
 
 if __name__ == '__main__':

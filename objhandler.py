@@ -1,10 +1,10 @@
 from objects import *
 
-class ObjHander():
-    def __init__():
+class ObjHandler():
+    def __init__(self):
         pass
 
-    def save_file(filename: str, target: list[WireFrame]):
+    def save_file(self, filename: str, target: list[WireFrame]):
         if(not filename.endswith(".obj")):
             filename = filename + ".obj"
         file = open(filename, "x")
@@ -13,7 +13,7 @@ class ObjHander():
             for p in points:
                 file.write("v " + str(p.get_x()) + " " + str(p.get_y()) + " 0.0\n")
             file.write("o " + obj.get_name() + "\n")
-            count = obj.get_type()
+            count = int(obj.get_type())
             if count == 1:
                 file.write("p -1\n")
             elif count == 2:
@@ -26,7 +26,7 @@ class ObjHander():
                 file.write("\n")
         file.close()
 
-    def open_file(filename: str):
+    def open_file(self, filename: str) -> list[WireFrame]:
         if(not filename.endswith(".obj")):
             filename = filename + ".obj"
         file = open(filename, "r")
@@ -40,7 +40,7 @@ class ObjHander():
                 names.append(split[1])
             elif(line.startswith("v")):
                 split = line.split()
-                points.append(Point(split[1],split[2]))
+                points.append(Point(int(split[1]),int(split[2])))
             elif(line.startswith("p") or line.startswith("l") or line.startswith("f")):
                 params.append(line)
         for position, new_obj_name in enumerate(names):
@@ -55,3 +55,4 @@ class ObjHander():
                 count -= 1
             objects.append(WireFrame(new_obj_name, obj_points))
         file.close()
+        return objects
