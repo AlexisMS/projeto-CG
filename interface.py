@@ -306,7 +306,6 @@ class MainWindow(QMainWindow):
 
     def draw_lines_coords(self):
         self.pen.setWidth(2)
-        self.pen.setColor(QColor("black"))
         x1 = numpy.array([-10000, self.windows.get_center().get_y(), 1])
         x1 = x1.dot(self.windows.get_normalization_matrix())
         x2 = numpy.array([10000, self.windows.get_center().get_y(), 1])
@@ -319,7 +318,9 @@ class MainWindow(QMainWindow):
         p2 = self.viewport_transform(Point(x2[0], x2[1]))
         p3 = self.viewport_transform(Point(y1[0], y1[1]))
         p4 = self.viewport_transform(Point(y2[0], y2[1]))
+        self.pen.setColor(QColor("red"))
         self.scene.addLine(p1.get_x(), p1.get_y(), p2.get_x(), p2.get_y(), self.pen)
+        self.pen.setColor(QColor("blue"))
         self.scene.addLine(p3.get_x(), p3.get_y(), p4.get_x(), p4.get_y(), self.pen)
 
     def zoom_In(self) -> None:
