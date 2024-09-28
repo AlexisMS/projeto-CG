@@ -463,14 +463,13 @@ class MainWindow(QMainWindow):
             logging.info("selecione um objeto")
         else:
             obj = self.selected_object()
-            print(type(obj))
             translate_point = Point(int(self.point_x_entry.text()), int(self.point_y_entry.text()))
             for point in obj.get_points():
                 point.set_x(point.get_x() + translate_point.get_x())
                 point.set_y(point.get_y() + translate_point.get_y())
             self.redraw_objects()
-            logging.info("translação de (" + str(translate_point.get_x()) + "," + str(translate_point.get_y()) + ") aplicada")
-            logging.info("objeto transladado " + obj.get_name() +  " em " + obj.get_str_points())
+            logging.info("objeto" + obj.get_name() +
+                         "trnasladado em (" +str(translate_point.get_x())+","+str(translate_point.get_y())+")")
 
     def schedule(self):
         if self.object_names.currentItem() == None:
@@ -482,8 +481,9 @@ class MainWindow(QMainWindow):
             obj.update_transform(matrix)
             obj.apply_transform()
             obj.reset_transform()
-
             self.redraw_objects()
+            logging.info("objeto" + obj.get_name() +
+                         "escalonado em (" +str(point.get_x())+","+str(point.get_y())+")")
 
     def rotate_object(self):
         if self.object_names.currentItem() == None:
@@ -496,6 +496,8 @@ class MainWindow(QMainWindow):
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
+            logging.info("objeto" + obj.get_name() +
+                         "rotacionado a partir do centro do objeto")
 
     def rotate_world(self):
         if self.object_names.currentItem() == None:
@@ -508,6 +510,8 @@ class MainWindow(QMainWindow):
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
+            logging.info("objeto" + obj.get_name() +
+                         "rotacionado a partir do centro do mundo")
 
     def rotate_point(self):
         pivot_x = int(self.point_x_entry.text())
@@ -523,12 +527,15 @@ class MainWindow(QMainWindow):
             obj.apply_transform()
             obj.reset_transform()
             self.redraw_objects()
+            logging.info("objeto" + obj.get_name() +
+                         "rotacionado a partir do ponto (" +str(pivot_x)+","+str(pivot_y)+")")
 
     def rotate_window(self):
         angle = float(self.angle_entry.text())
         self.windows.set_angle(angle)
         self.windows.update_normalization_matrix()
         self.redraw_objects()
+        logging.info('window rotacionada')
     
 
 if __name__ == '__main__':
