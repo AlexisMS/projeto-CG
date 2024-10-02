@@ -346,21 +346,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Computação Gráfica")
         self.setCentralWidget(self.main_ui)
 
-        # Janela principal
-        # Contém interface de usuario e parte de log
-        # self.windows_layout = QVBoxLayout()
-        # self.windows_layout.addWidget(self.main_ui, 10)
-        # self.windows_layout.addWidget(self.log_widget, 1)
-        # self.windows_ui = QWidget()
-        # self.windows_ui.setLayout(self.windows_layout)
-        # self.setWindowTitle("Computação Gráfica")
-        # self.setCentralWidget(self.windows_ui)
-
         self.windows.update_normalization_matrix()
         self.draw_lines_coords()
 
         logging.info('programa iniciado')
 
+    # Desenha as linhas x e y
     def draw_lines_coords(self):
         line1 = WireFrame("line1",
                           [Point(-10000, self.windows.get_center().get_y()),
@@ -373,7 +364,7 @@ class MainWindow(QMainWindow):
         self.draw(line1)
         self.draw(line2)
 
-
+    # Aumenta o zoom
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
             logging.info('zoom máximo atingido')
@@ -381,6 +372,7 @@ class MainWindow(QMainWindow):
             self.viewport.scale(1.1, 1.1)
             logging.info('zoom in de 10%')
 
+    # Diminui o zoom
     def zoom_Out(self) -> None:
         if self.viewport.transform().m11() <= 0.1:
             logging.info('zoom mínimo atingido')
@@ -388,6 +380,7 @@ class MainWindow(QMainWindow):
             self.viewport.scale(0.9, 0.9)
             logging.info('zoom out de 10%')
 
+    # Navega para o centro
     def nav_center(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(0)
@@ -396,6 +389,7 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window centralizada')
 
+    # Navega para esquerda
     def nav_left(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() - 20)
@@ -403,6 +397,7 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window deslocada para esquerda')
 
+    # Navega para direita
     def nav_right(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() + 20)
@@ -410,6 +405,7 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window deslocada para direita')
 
+    # Navega para cima
     def nav_up(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() + 15)
@@ -417,6 +413,7 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window deslocada para cima')
 
+    # Navega para baixo
     def nav_down(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() - 15)
@@ -424,11 +421,13 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window deslocada para baixo')
 
+    # Atualiza a lista de objetos
     def update_objects_names(self) -> None:
         self.object_names.clear()
         for obj in self.windows.get_display_file().get_objects():
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
 
+    # Desenha um objeto
     def draw(self, obj: WireFrame):
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
@@ -462,11 +461,13 @@ class MainWindow(QMainWindow):
             self.scene.addLine(
                 last_transformed_point.get_x(), last_transformed_point.get_y(),
                 first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
-            
+    
+    # Desenha um objeto
     def draw_object(self, obj: WireFrame):
         self.draw(obj)
         self.windows.get_display_file().add_object(obj)
 
+    # Transformada de viewport
     def viewport_transform(self, point: Point) -> Point:
         xvp = (point.get_x() - (-1))
         xvp = xvp / (1 - (-1))
@@ -478,11 +479,13 @@ class MainWindow(QMainWindow):
         transformed_point = Point(xvp, yvp)
         return transformed_point
     
+    # Detecta objeto selecionado
     def selected_object(self) -> WireFrame:
         obj = self.windows.get_display_file().get_object(self.object_names.currentItem().text())
         logging.info('objeto selecionado:'+ obj.get_name() + " em " +obj.get_str_points())
         return obj
     
+    # Redesenha todos os objetos
     def redraw_objects(self):
         self.scene.clear()
         self.windows.update_normalization_matrix()
@@ -493,6 +496,7 @@ class MainWindow(QMainWindow):
             obj.apply_normalized(self.windows.get_normalization_matrix())
             self.draw(obj)
 
+    # Translada um objeto
     def translate(self):
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
@@ -504,8 +508,9 @@ class MainWindow(QMainWindow):
                 point.set_y(point.get_y() + translate_point.get_y())
             self.redraw_objects()
             logging.info("objeto" + obj.get_name() +
-                         "trnasladado em (" +str(translate_point.get_x())+","+str(translate_point.get_y())+")")
+                         "transladado em (" +str(translate_point.get_x())+","+str(translate_point.get_y())+")")
 
+    # Escalona um objeto
     def schedule(self):
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
@@ -520,6 +525,7 @@ class MainWindow(QMainWindow):
             logging.info("objeto" + obj.get_name() +
                          "escalonado em (" +str(point.get_x())+","+str(point.get_y())+")")
 
+    # Rotaciona um objeto pelo seu centro
     def rotate_object(self):
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
@@ -534,6 +540,7 @@ class MainWindow(QMainWindow):
             logging.info("objeto" + obj.get_name() +
                          "rotacionado a partir do centro do objeto")
 
+    # Rotaciona um objeto pelo centro do mundo
     def rotate_world(self):
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
@@ -548,6 +555,7 @@ class MainWindow(QMainWindow):
             logging.info("objeto" + obj.get_name() +
                          "rotacionado a partir do centro do mundo")
 
+    # Rotaciona um objeto pelo ponto dado
     def rotate_point(self):
         pivot_x = int(self.point_x_entry.text())
         pivot_y = int(self.point_y_entry.text())
@@ -565,6 +573,7 @@ class MainWindow(QMainWindow):
             logging.info("objeto" + obj.get_name() +
                          "rotacionado a partir do ponto (" +str(pivot_x)+","+str(pivot_y)+")")
 
+    # Rotaciona a janela
     def rotate_window(self):
         angle = float(self.angle_entry.text())
         self.windows.set_angle(angle)
@@ -572,6 +581,7 @@ class MainWindow(QMainWindow):
         self.redraw_objects()
         logging.info('window rotacionada')
 
+    # Salva o arquivo de objetos
     def save_file(self, file_name: str, objects: list[WireFrame]):
         handler = ObjHandler()
         handler.save_file(file_name, objects)
