@@ -24,22 +24,11 @@ class Window():
 
     def get_normalization_matrix(self) -> numpy.ndarray:
         return self.normalization_matrix
-    
-    def update_normalized_coord(self) -> None:
-        coord_min = numpy.array([self.xmin, self.ymin, 1])
-        coord_min = coord_min.dot(self.normalization_matrix)
-        coord_max = numpy.array([self.xmax, self.ymax, 1])
-        coord_max = coord_max.dot(self.normalization_matrix)
-        self.xmin_normalized = coord_min[0]
-        self.ymin_normalized = coord_min[1]
-        self.xmax_normalized = coord_max[0]
-        self.ymax_normalized = coord_max[1]
 
     def update_normalization_matrix(self) -> None:
         height = self.ymax - self.ymin
         widht = self.xmax - self.xmin
         self.normalization_matrix = build_normalization_matrix(height, widht, self.shift, self.angle)
-        self.update_normalized_coord()
 
     def set_angle(self, angle) -> None:
         self.angle -= angle

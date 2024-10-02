@@ -362,23 +362,34 @@ class MainWindow(QMainWindow):
         logging.info('programa iniciado')
 
     def draw_lines_coords(self):
-        self.pen.setWidth(2)
-        x1 = numpy.array([-10000, self.windows.get_center().get_y(), 1])
-        x1 = x1.dot(self.windows.get_normalization_matrix())
-        x2 = numpy.array([10000, self.windows.get_center().get_y(), 1])
-        x2 = x2.dot(self.windows.get_normalization_matrix())
-        y1 = numpy.array([self.windows.get_center().get_x(), -10000, 1])
-        y1 = y1.dot(self.windows.get_normalization_matrix())
-        y2 = numpy.array([self.windows.get_center().get_x(), 10000, 1])
-        y2 = y2.dot(self.windows.get_normalization_matrix())
-        p1 = self.viewport_transform(Point(x1[0], x1[1]))
-        p2 = self.viewport_transform(Point(x2[0], x2[1]))
-        p3 = self.viewport_transform(Point(y1[0], y1[1]))
-        p4 = self.viewport_transform(Point(y2[0], y2[1]))
-        self.pen.setColor(QColor("red"))
-        self.scene.addLine(p1.get_x(), p1.get_y(), p2.get_x(), p2.get_y(), self.pen)
-        self.pen.setColor(QColor("blue"))
-        self.scene.addLine(p3.get_x(), p3.get_y(), p4.get_x(), p4.get_y(), self.pen)
+        # self.pen.setWidth(2)
+        # x1 = numpy.array([-10000, self.windows.get_center().get_y(), 1])
+        # x1 = x1.dot(self.windows.get_normalization_matrix())
+        # x2 = numpy.array([10000, self.windows.get_center().get_y(), 1])
+        # x2 = x2.dot(self.windows.get_normalization_matrix())
+        # y1 = numpy.array([self.windows.get_center().get_x(), -10000, 1])
+        # y1 = y1.dot(self.windows.get_normalization_matrix())
+        # y2 = numpy.array([self.windows.get_center().get_x(), 10000, 1])
+        # y2 = y2.dot(self.windows.get_normalization_matrix())
+        # p1 = self.viewport_transform(Point(x1[0], x1[1]))
+        # p2 = self.viewport_transform(Point(x2[0], x2[1]))
+        # p3 = self.viewport_transform(Point(y1[0], y1[1]))
+        # p4 = self.viewport_transform(Point(y2[0], y2[1]))
+        # self.pen.setColor(QColor("red"))
+        # self.scene.addLine(p1.get_x(), p1.get_y(), p2.get_x(), p2.get_y(), self.pen)
+        # self.pen.setColor(QColor("blue"))
+        # self.scene.addLine(p3.get_x(), p3.get_y(), p4.get_x(), p4.get_y(), self.pen)
+        line1 = WireFrame("line1",
+                          [Point(-10000, self.windows.get_center().get_y()),
+                           Point(10000, self.windows.get_center().get_y())])
+        line1.apply_normalized(self.windows.get_normalization_matrix())
+        line2 = WireFrame("line2",
+                          [Point(self.windows.get_center().get_x(), -10000),
+                           Point(self.windows.get_center().get_x(), 10000)])
+        line2.apply_normalized(self.windows.get_normalization_matrix())
+        self.draw(line1)
+        self.draw(line2)
+
 
     def zoom_In(self) -> None:
         if self.viewport.transform().m11() >= 10:
@@ -402,7 +413,8 @@ class MainWindow(QMainWindow):
         self.windows.set_ymin(self.windows.get_ymin() - shift.get_y())
         shift.set_x(0)
         shift.set_y(0)
-        self.windows.update_center()        
+        self.windows.update_center()
+        self.windows.update_normalization_matrix()
         self.viewport.setSceneRect(0, 0, 800, 600)
         logging.info('window centralizada')
 
@@ -490,11 +502,19 @@ class MainWindow(QMainWindow):
         self.windows.get_display_file().add_object(obj)
 
     def viewport_transform(self, point: Point) -> Point:
-        xvp = (point.get_x() - self.windows.get_xmin_normalized())
-        xvp = xvp / (self.windows.get_xmax_normalized() - self.windows.get_xmin_normalized())
+        # xvp = (point.get_x() - self.windows.get_xmin_normalized())
+        # xvp = xvp / (self.windows.get_xmax_normalized() - self.windows.get_xmin_normalized())
+        # xvp = xvp * (self.viewport.maximumWidth() - self.viewport.minimumWidth())
+        # yvp = (point.get_y() - self.windows.get_ymin_normalized())
+        # yvp = yvp / (self.windows.get_ymax_normalized() - self.windows.get_ymin_normalized())
+        # yvp = 1 - yvp
+        # yvp = yvp * (self.viewport.maximumHeight() - self.viewport.minimumHeight())
+        # transformed_point = Point(xvp, yvp)
+        xvp = (point.get_x() - (-1))
+        xvp = xvp / (1 - (-1))
         xvp = xvp * (self.viewport.maximumWidth() - self.viewport.minimumWidth())
-        yvp = (point.get_y() - self.windows.get_ymin_normalized())
-        yvp = yvp / (self.windows.get_ymax_normalized() - self.windows.get_ymin_normalized())
+        yvp = (point.get_y() - (-1))
+        yvp = yvp / (1 - (-1))
         yvp = 1 - yvp
         yvp = yvp * (self.viewport.maximumHeight() - self.viewport.minimumHeight())
         transformed_point = Point(xvp, yvp)
