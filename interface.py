@@ -161,6 +161,16 @@ class MainWindow(QMainWindow):
         self.create_object_button = QPushButton("Novo Objeto")
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
 
+        # Interface de clipping
+        self.clipping_button_1 = QRadioButton("um metodo")
+        self.clipping_button_2 = QRadioButton("outro_metodo")
+        self.clipping_button_1.setChecked(True)
+        self.clipping_button_layout = QVBoxLayout()
+        self.clipping_button_layout.addWidget(self.clipping_button_1)
+        self.clipping_button_layout.addWidget(self.clipping_button_2)
+        self.clipping_button_menu = QGroupBox("Clipping")
+        self.clipping_button_menu.setLayout(self.clipping_button_layout)
+
         # SOMENTE PARA TESTES
         # self.scene.addRect(1000, 75, 600, 450)
 
@@ -294,6 +304,7 @@ class MainWindow(QMainWindow):
         # Layout do menu
         # Contém lista de objetos e funções de zoom e navegação
         self.left_menu_layout = QVBoxLayout()
+        self.left_menu_layout.addWidget(self.clipping_button_menu)
         self.left_menu_layout.addWidget(self.left_objects_menu)
         self.left_menu_layout.addWidget(self.left_zoom_menu)
         self.left_menu_layout.addWidget(self.left_nav_menu)
@@ -307,34 +318,43 @@ class MainWindow(QMainWindow):
         self.viewport_layout = QVBoxLayout()
         self.viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport_layout.addWidget(self.viewport)
-        self.main_widget = QGroupBox("Viewport")
+        self.viewport_widget = QGroupBox("Viewport")
         # self.main_widget.setFixedSize(QSize(810, 610))
-        self.main_widget.setLayout(self.viewport_layout)
+        self.viewport_widget.setLayout(self.viewport_layout)
 
         # Layout do log
-        # Contém a paret textual do log
+        # Contém a parte textual do log
         self.log_layout = QVBoxLayout()
         self.log_layout.addWidget(self.logTextBox.widget)
         self.log_widget = QGroupBox("Logs")
         self.log_widget.setLayout(self.log_layout)
 
-        # Layout da interface de usuario
-        # Contém o menu de funções e objetos 
+        # Log e Viewport
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addWidget(self.viewport_widget, 5)
+        self.main_layout.addWidget(self.log_widget, 1)
+        self.main_widget = QGroupBox()
+        self.main_widget.setLayout(self.main_layout)
+
+        # Janela principal
+        # Contém interface de usuario e parte de log
         self.main_ui_layout = QHBoxLayout()
         self.main_ui_layout.addWidget(self.left_menu, 1)
         self.main_ui_layout.addWidget(self.main_widget, 3)
         self.main_ui = QWidget()    
         self.main_ui.setLayout(self.main_ui_layout)
+        self.setWindowTitle("Computação Gráfica")
+        self.setCentralWidget(self.main_ui)
 
         # Janela principal
         # Contém interface de usuario e parte de log
-        self.windows_layout = QVBoxLayout()
-        self.windows_layout.addWidget(self.main_ui, 10)
-        self.windows_layout.addWidget(self.log_widget, 1)
-        self.windows_ui = QWidget()
-        self.windows_ui.setLayout(self.windows_layout)
-        self.setWindowTitle("Computação Gráfica")
-        self.setCentralWidget(self.windows_ui)
+        # self.windows_layout = QVBoxLayout()
+        # self.windows_layout.addWidget(self.main_ui, 10)
+        # self.windows_layout.addWidget(self.log_widget, 1)
+        # self.windows_ui = QWidget()
+        # self.windows_ui.setLayout(self.windows_layout)
+        # self.setWindowTitle("Computação Gráfica")
+        # self.setCentralWidget(self.windows_ui)
 
         self.windows.update_normalization_matrix()
         self.draw_lines_coords()
