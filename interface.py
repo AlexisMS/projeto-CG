@@ -43,6 +43,7 @@ class NewObjectDialog(QWidget):
         self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
         self.point_layout = []
         self.point_widget = []
+
         for n in range(point_amount):
             self.point_layout.append(QHBoxLayout())
             self.point_layout[n].addWidget(self.x_label[n])
@@ -63,8 +64,23 @@ class NewObjectDialog(QWidget):
         # Configura o layout
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.name_widget)
+        
+        if point_amount >= 3:
+            self.type_label = QLabel("Tipo do Objeto")
+            self.type_button_1 = QRadioButton("Arame")
+            self.type_button_2 = QRadioButton("Preenchido")
+            self.type_button_1.setChecked(True)
+            self.type_button_layout = QHBoxLayout()
+            self.type_button_layout.addWidget(self.type_label, 2)
+            self.type_button_layout.addWidget(self.type_button_1, 1)
+            self.type_button_layout.addWidget(self.type_button_2, 1)
+            self.type_button_widget = QWidget()
+            self.type_button_widget.setLayout(self.type_button_layout)
+            self.layout.addWidget(self.type_button_widget)
+
         for n in range(point_amount):
             self.layout.addWidget(self.point_widget[n])
+
         self.layout.addWidget(self.buttonCreateObject)
         self.layout.addWidget(self.file_label)
         self.layout.addWidget(self.file_name)
