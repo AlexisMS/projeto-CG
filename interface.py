@@ -401,28 +401,28 @@ class MainWindow(QMainWindow):
         shift.set_x(shift.get_x() - 20)
         self.windows.update_normalization_matrix()
         self.redraw_objects()
-        logging.info('window deslocada')
+        logging.info('window deslocada para esquerda')
 
     def nav_right(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() + 20)
         self.windows.update_normalization_matrix()
         self.redraw_objects()
-        logging.info('window deslocada')
+        logging.info('window deslocada para direita')
 
     def nav_up(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() + 15)
         self.windows.update_normalization_matrix()
         self.redraw_objects()
-        logging.info('window deslocada')
+        logging.info('window deslocada para cima')
 
     def nav_down(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() - 15)
         self.windows.update_normalization_matrix()
         self.redraw_objects()
-        logging.info('window deslocada')
+        logging.info('window deslocada para baixo')
 
     def update_objects_names(self) -> None:
         self.object_names.clear()
