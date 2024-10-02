@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
 
         # Interface de clipping
-        self.clipping_button_1 = QRadioButton("um metodo")
+        self.clipping_button_1 = QRadioButton("Liang-Barsky")
         self.clipping_button_2 = QRadioButton("outro_metodo")
         self.clipping_button_1.setChecked(True)
         self.clipping_button_layout = QVBoxLayout()
