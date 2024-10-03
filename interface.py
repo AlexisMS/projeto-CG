@@ -6,8 +6,9 @@ from PySide6.QtWidgets import *
 from display_file import DisplayFile
 from window import Window
 from objects import WireFrame, Point
-from transform_functions import *
 from objhandler import ObjHandler
+from transform_functions import *
+from clipping_functions import *
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, parent=None):
@@ -144,18 +145,18 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.windows = Window(-400,-300,400,300, DisplayFile()) # Window
+        self.windows = Window(-390,-290,390,290, DisplayFile()) # Window
         self.subWindows = SubWindows() # Janelas Extras
         self.scene = QGraphicsScene() # Cenário
         self.scene.setBackgroundBrush(QColor('grey'))
-        self.scene.setSceneRect(0,-0,800,600)
+        self.scene.setSceneRect(0,0,800,600)
 
         self.viewport = QGraphicsView(self.scene) # Viewport
         self.viewport.setFixedSize(800, 600)
-        self.viewport.setMinimumHeight(0)
-        self.viewport.setMinimumWidth(0)
-        self.viewport.setMaximumHeight(600)
-        self.viewport.setMaximumWidth(800)
+        self.viewport.setMinimumHeight(10)
+        self.viewport.setMinimumWidth(10)
+        self.viewport.setMaximumHeight(580)
+        self.viewport.setMaximumWidth(780)
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
@@ -363,12 +364,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_ui)
 
         self.windows.update_normalization_matrix()
-        self.draw_lines_coords()
+        self.draw_default_forms()
 
         logging.info('programa iniciado')
 
     # Desenha as linhas x e y
-    def draw_lines_coords(self):
+    def draw_default_forms(self):
+
         line1 = WireFrame("line1",
                           [Point(-10000, self.windows.get_center().get_y()),
                            Point(10000, self.windows.get_center().get_y())])
@@ -377,6 +379,7 @@ class MainWindow(QMainWindow):
                           [Point(self.windows.get_center().get_x(), -10000),
                            Point(self.windows.get_center().get_x(), 10000)])
         line2.apply_normalized(self.windows.get_normalization_matrix())
+        self.scene.addRect()
         self.draw(line1)
         self.draw(line2)
 
@@ -442,7 +445,7 @@ class MainWindow(QMainWindow):
         self.object_names.clear()
         for obj in self.windows.get_display_file().get_objects():
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
-
+    
     # Desenha um objeto
     def draw(self, obj: WireFrame):
         self.pen.setWidth(1)
@@ -456,11 +459,22 @@ class MainWindow(QMainWindow):
         elif obj.get_type() == 2:
             first_point = obj.get_normalized_points()[0]
             last_point = obj.get_normalized_points()[-1]
-            first_transformed_point = self.viewport_transform(first_point)
-            last_transformed_point = self.viewport_transform(last_point)
-            self.scene.addLine(
-                first_transformed_point.get_x(), first_transformed_point.get_y(),
-                last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+            # Clipagem Liang-Barsky
+            if self.clipping_button_1.isChecked():
+                visible, first_point, last_point = liang_barsky(first_point, last_point)
+                if visible:
+                    first_transformed_point = self.viewport_transform(first_point)
+                    last_transformed_point = self.viewport_transform(last_point)
+                    self.scene.addLine(
+                        first_transformed_point.get_x(), first_transformed_point.get_y(),
+                        last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+            # Clipagem 
+            else:
+                first_transformed_point = self.viewport_transform(first_point)
+                last_transformed_point = self.viewport_transform(last_point)
+                self.scene.addLine(
+                    first_transformed_point.get_x(), first_transformed_point.get_y(),
+                    last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
         else:
             first_point = obj.get_normalized_points()[0]
             last_point = obj.get_normalized_points()[-1]
@@ -505,7 +519,7 @@ class MainWindow(QMainWindow):
     def redraw_objects(self):
         self.scene.clear()
         self.windows.update_normalization_matrix()
-        self.draw_lines_coords()
+        self.draw_default_forms()
         objects = self.windows.get_display_file().get_objects()
         for obj in objects:
             obj.clear_normalized_points()
