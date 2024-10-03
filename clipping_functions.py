@@ -6,8 +6,10 @@ def liang_barsky(point_1: Point, point_2: Point):
     x_max = 1
     y_max = 1
 
-    x0, y0 = point_1
-    x1, y1 = point_2
+    x0 = point_1.get_x()
+    y0 = point_1.get_y()
+    x1 = point_2.get_x()
+    y1 = point_2.get_y()
 
     p1 = -(x1 - x0)
     p2 = -p1

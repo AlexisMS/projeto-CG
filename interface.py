@@ -145,18 +145,17 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.windows = Window(-390,-290,390,290, DisplayFile()) # Window
+        self.windows = Window(-380,-280,380,280, DisplayFile()) # Window
         self.subWindows = SubWindows() # Janelas Extras
         self.scene = QGraphicsScene() # Cenário
         self.scene.setBackgroundBrush(QColor('grey'))
-        self.scene.setSceneRect(0,0,800,600)
-
+        # self.scene.setSceneRect(0,0,800,600)
         self.viewport = QGraphicsView(self.scene) # Viewport
-        self.viewport.setFixedSize(800, 600)
-        self.viewport.setMinimumHeight(10)
-        self.viewport.setMinimumWidth(10)
-        self.viewport.setMaximumHeight(580)
-        self.viewport.setMaximumWidth(780)
+        self.viewport.setFixedSize(800,600)
+        self.viewport.setMinimumHeight(0)
+        self.viewport.setMinimumWidth(0)
+        self.viewport.setMaximumHeight(600)
+        self.viewport.setMaximumWidth(800)
         self.viewport.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
@@ -365,6 +364,7 @@ class MainWindow(QMainWindow):
 
         self.windows.update_normalization_matrix()
         self.draw_default_forms()
+        self.zoom_Out()
 
         logging.info('programa iniciado')
 
@@ -379,7 +379,9 @@ class MainWindow(QMainWindow):
                           [Point(self.windows.get_center().get_x(), -10000),
                            Point(self.windows.get_center().get_x(), 10000)])
         line2.apply_normalized(self.windows.get_normalization_matrix())
-        self.scene.addRect()
+        self.pen.setWidth(1)
+        self.pen.setColor(QColor("white"))
+        self.scene.addRect(0, 0, 800, 600, self.pen)
         self.draw(line1)
         self.draw(line2)
 
@@ -450,13 +452,13 @@ class MainWindow(QMainWindow):
     def draw(self, obj: WireFrame):
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
-        if obj.get_type() == 1:
+        if obj.get_type() == '1':
             point = obj.get_normalized_points()[0]
             transformed_point = self.viewport_transform(point)
             self.scene.addLine(
                 transformed_point.get_x(), transformed_point.get_y(),
                 transformed_point.get_x(), transformed_point.get_y(), self.pen)
-        elif obj.get_type() == 2:
+        elif obj.get_type() == '2':
             first_point = obj.get_normalized_points()[0]
             last_point = obj.get_normalized_points()[-1]
             # Clipagem Liang-Barsky
