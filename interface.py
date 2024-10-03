@@ -454,10 +454,12 @@ class MainWindow(QMainWindow):
         self.pen.setColor(QColor("white"))
         if obj.get_type() == '1':
             point = obj.get_normalized_points()[0]
-            transformed_point = self.viewport_transform(point)
-            self.scene.addLine(
-                transformed_point.get_x(), transformed_point.get_y(),
-                transformed_point.get_x(), transformed_point.get_y(), self.pen)
+            visible, point = clip_point(point)
+            if visible:
+                transformed_point = self.viewport_transform(point)
+                self.scene.addLine(
+                    transformed_point.get_x(), transformed_point.get_y(),
+                    transformed_point.get_x(), transformed_point.get_y(), self.pen)
         elif obj.get_type() == '2':
             first_point = obj.get_normalized_points()[0]
             last_point = obj.get_normalized_points()[-1]

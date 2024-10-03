@@ -209,3 +209,9 @@ def cohen_sutherland(point_1: Point, point_2: Point):
         return(True, new_p1, new_p2)
     else:
         return(False, None, None)
+
+def clip_point(point_1: Point):
+    if point_1.get_x() > -1 and point_1.get_x() < 1 and point_1.get_y() > -1 and point_1.get_y() < 1:
+        return(True, point_1)
+    else:
+        return(False, None)
