@@ -10,7 +10,6 @@ def weiler_atherton(points: list[Point]):
             new_intersections.append(p2)
     
     return new_intersections
-    # for i in range(len(new_intersections)/2):
 
 
 def liang_barsky(point_1: Point, point_2: Point):
