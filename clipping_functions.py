@@ -40,3 +40,6 @@ def liang_barsky(point_1: Point, point_2: Point):
     new_y1 = y0 + u2 * p4
 
     return (True, Point(new_x0, new_y0), Point(new_x1, new_y1))
+
+def nicholl_lee_nicholl(point_1: Point, point_2: Point):
+    pass
