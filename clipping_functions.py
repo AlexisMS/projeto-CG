@@ -1,7 +1,6 @@
 from objects import Point
 
 def weiler_atherton(points: list[Point]):
-    new_points = []
     new_intersections = []
     for i in range(len(points)-1):
         visible, p1, p2 = liang_barsky(points[i], points[i+1])
@@ -9,11 +8,6 @@ def weiler_atherton(points: list[Point]):
         if visible:
             new_intersections.append(p1)
             new_intersections.append(p2)
-
-            if p1.get_str_point() != points[i].get_str_point():
-                new_points.append(p1)
-            elif p2.get_str_point() != points[i+1].get_str_point():
-                new_points.append(p2)
     
     return new_intersections
     # for i in range(len(new_intersections)/2):
