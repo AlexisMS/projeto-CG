@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
 
         # Interface de clipping
         self.clipping_button_1 = QRadioButton("Liang-Barsky")
-        self.clipping_button_2 = QRadioButton("outro_metodo")
+        self.clipping_button_2 = QRadioButton("Cohen-Sutherland")
         self.clipping_button_1.setChecked(True)
         self.clipping_button_layout = QVBoxLayout()
         self.clipping_button_layout.addWidget(self.clipping_button_1)
@@ -470,7 +470,15 @@ class MainWindow(QMainWindow):
                     self.scene.addLine(
                         first_transformed_point.get_x(), first_transformed_point.get_y(),
                         last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-            # Clipagem 
+            # Clipagem Cohen-Sutherland
+            elif self.clipping_button_2.isChecked():
+                visible, first_point, last_point = cohen_sutherland(first_point, last_point)
+                if visible:
+                    first_transformed_point = self.viewport_transform(first_point)
+                    last_transformed_point = self.viewport_transform(last_point)
+                    self.scene.addLine(
+                        first_transformed_point.get_x(), first_transformed_point.get_y(),
+                        last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
             else:
                 first_transformed_point = self.viewport_transform(first_point)
                 last_transformed_point = self.viewport_transform(last_point)
