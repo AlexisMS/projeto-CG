@@ -110,12 +110,7 @@ class Curva2D_bezier():
         self.gbx = numpy.array([[points[0].get_x()], [points[1].get_x()], [points[2].get_x()], [points[3].get_x()]])
         self.gby = numpy.array([[points[0].get_y()], [points[1].get_y()], [points[2].get_y()], [points[3].get_y()]])
     
-    def get_x(self, t: float):
+    def get_point(self, t: float):
         t_array = numpy.array([pow(t,3), pow(t,2), t, 1])
         temp = t_array.dot(self.mb)
-        return temp.dot(self.gbx)
-    
-    def get_y(self, t: float):
-        t_array = numpy.array([pow(t,3), pow(t,2), t, 1])
-        temp = t_array.dot(self.mb)
-        return temp.dot(self.gby)
+        return Point(temp.dot(self.gbx), temp.dot(self.gby))
