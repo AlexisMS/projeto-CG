@@ -110,7 +110,7 @@ class Curva2D_bezier(WireFrame):
         self.gbx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
         self.gby = numpy.array([[ctrl_points[0].get_y()], [ctrl_points[1].get_y()], [ctrl_points[2].get_y()], [ctrl_points[3].get_y()]])
         self.points = []
-        for i in range(resolution):
+        for i in range(1,resolution+1):
             point = self.set_point(i/resolution)
             self.points.append(point)
     
