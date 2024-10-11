@@ -102,7 +102,7 @@ class WireFrame():
         self.set_center()
 
 class Curva2D_bezier(WireFrame):
-    def __init__(self, name: str, ctrl_points: list[Point], resolution: int): # por enquanto assumindo apenas uma curva com 4 pontos de controle
+    def __init__(self, name: str, ctrl_points: list[Point], steps: int): # por enquanto assumindo apenas uma curva com 4 pontos de controle
         self.name = name
         self.type = str(len(ctrl_points))
         self.ctrl_points = ctrl_points
@@ -110,11 +110,12 @@ class Curva2D_bezier(WireFrame):
         self.gbx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
         self.gby = numpy.array([[ctrl_points[0].get_y()], [ctrl_points[1].get_y()], [ctrl_points[2].get_y()], [ctrl_points[3].get_y()]])
         self.points = []
-        for i in range(1,resolution+1):
-            point = self.set_point(i/resolution)
+        for i in range(1,steps+1):
+            point = self.set_point(i/steps)
             self.points.append(point)
     
     def set_point(self, t: float) -> Point:
         t_array = numpy.array([pow(t,3), pow(t,2), t, 1])
-        temp = t_array.dot(self.mb)
-        return Point(temp.dot(self.gbx), temp.dot(self.gby))
+        temp = numpy.matmul(t_array, self.mb)
+        return Point(numpy.matmul(temp, self.gbx), numpy.matmul(temp, self.gby))
+    
