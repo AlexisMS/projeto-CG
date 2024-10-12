@@ -5,7 +5,7 @@ from PySide6.QtWidgets import *
 
 from display_file import DisplayFile
 from window import Window
-from objects import WireFrame, Point
+from objects import WireFrame, Point, Curva2D_bezier
 from objhandler import ObjHandler
 from transform_functions import *
 from clipping_functions import *
@@ -133,13 +133,114 @@ class NewObjectDialog(QWidget):
                        +obj.get_str_points())
             logging.info(message)
         self.close()
+
+class NewCurveDialog(QWidget):
+    def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
+        super().__init__()
+        self.ctrl_points = []
+        self.x_label = []
+        self.x_coord = []
+        self.y_label = []
+        self.y_coord = []
+
+        for n in range(point_amount*4-(point_amount-1)):
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+
+        self.buttonCreateObject = QPushButton("Criar Curva")
+        self.buttonCreateObject.clicked.connect(lambda : self.new_Curve(point_amount, normalized_matrix))
+        self.file_label = QLabel("Nome do arquivo")
+        self.file_name = QLineEdit()
+        self.file_open_button = QPushButton("Ler arquivo")
+        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
+        self.point_layout = []
+        self.point_widget = []
+
+        for n in range(point_amount*4-(point_amount-1)):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+
+        self.name_label = QLabel("Nome da Curva")
+        self.name_entry = QLineEdit()
+        self.name_layout = QHBoxLayout()
+        self.name_layout.addWidget(self.name_label)
+        self.name_layout.addWidget(self.name_entry)
+        self.name_widget = QWidget()
+        self.name_widget.setLayout(self.name_layout)
+
+        # Configura o layout
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.name_widget)
+
+        for n in range(point_amount*4-(point_amount-1)):
+            self.layout.addWidget(self.point_widget[n])
+
+        self.layout.addWidget(self.buttonCreateObject)
+        self.layout.addWidget(self.file_label)
+        self.layout.addWidget(self.file_name)
+        self.layout.addWidget(self.file_open_button)
+        self.setLayout(self.layout)
+        self.setWindowTitle("Nova Curva")
+
+    @Slot()
+    def new_Point(self, n: int) -> None:
+        x = int(self.x_coord[n].text())
+        y = int(self.y_coord[n].text())
+        self.ctrl_points.append(Point(x, y))
     
+    @Slot()
+    def new_Curve(self, point_ammount: int, normalized_matrix: numpy.ndarray) -> None:
+        # Checa se há valor vazio em alguma coordenada submetida
+        empty_coord = False
+        for i in range(len(self.x_coord)):
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+                empty_coord = True
+                break
+        # Cancela criação de objetos se não cumprir algum requisito
+        if self.name_entry.text() == "" or empty_coord:
+            logging.info("wireframe não criado: campos precisam ser preenchidos")
+            self.close()
+        else:
+            for n in range(point_ammount):
+                self.new_Point(n)
+            obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+            self.close()
+
+    @Slot()
+    def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
+        handler = ObjHandler()
+        new_objects = handler.open_file(file_name)
+        for obj in new_objects:
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+        self.close()
 
 class SubWindows():
     def open_NewObjectDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
         self.new_window = NewObjectDialog(point_amount, normalized_matrix)
         self.new_window.show()
-
+    def open_NewCurveDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
+        self.new_window = NewCurveDialog(point_amount, normalized_matrix)
+        self.new_window.show()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -166,7 +267,7 @@ class MainWindow(QMainWindow):
         logging.getLogger().setLevel(logging.DEBUG)
 
         # Interface para iniciar criação de objetos
-        self.create_object_point_amount_label = QLabel("Número de pontos:")
+        self.create_object_point_amount_label = QLabel("Número de pontos/curvas:")
         self.create_object_point_amount = QSpinBox()
         self.create_object_point_amount.setMinimum(1)
         self.create_object_point_amount_layout = QHBoxLayout()
@@ -176,6 +277,8 @@ class MainWindow(QMainWindow):
         self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
         self.create_object_button = QPushButton("Novo Objeto")
         self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
+        self.create_curve_button = QPushButton("Nova Curva")
+        self.create_curve_button.clicked.connect(lambda : self.subWindows.open_NewCurveDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
 
         # Interface de clipping
         self.clipping_button_1 = QRadioButton("Liang-Barsky")
@@ -239,10 +342,11 @@ class MainWindow(QMainWindow):
         # Layout do menu dos objetos
         # Contém a lista de objetos e botão de criar objetos
         self.object_names = QListWidget()
-        self.left_objects_layout = QVBoxLayout()  
-        self.left_objects_layout.addWidget(self.create_object_point_amount_widget)  
-        self.left_objects_layout.addWidget(self.create_object_button)
-        self.left_objects_layout.addWidget(self.object_names)
+        self.left_objects_layout = QGridLayout()
+        self.left_objects_layout.addWidget(self.create_object_point_amount_widget, 1, 1, 1, 2)  
+        self.left_objects_layout.addWidget(self.create_object_button, 2, 1)
+        self.left_objects_layout.addWidget(self.create_curve_button, 2, 2)
+        self.left_objects_layout.addWidget(self.object_names, 3, 1, 2, 2)
         self.left_objects_menu = QGroupBox("Objetos")
         self.left_objects_menu.setLayout(self.left_objects_layout)
 
