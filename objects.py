@@ -109,7 +109,7 @@ class Segment_Curva2D_bezier(WireFrame):
         self.gbx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
         self.gby = numpy.array([[ctrl_points[0].get_y()], [ctrl_points[1].get_y()], [ctrl_points[2].get_y()], [ctrl_points[3].get_y()]])
         self.points = []
-        for i in range(1,steps+1):
+        for i in range(steps+1):
             point = self.set_point(i/steps)
             self.points.append(point)
         self.type = str(len(self.points))
