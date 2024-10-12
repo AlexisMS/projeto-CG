@@ -125,7 +125,7 @@ class Curva2D_bezier(WireFrame):
         self.ctrl_points = ctrl_points
         self.points = []
         while(1):
-            curve_segment = Segment_Curva2D_bezier([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3], ctrl_points[4]], steps)
+            curve_segment = Segment_Curva2D_bezier([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3]], steps)
             self.points = self.points + curve_segment.get_points()
             ctrl_points = ctrl_points[3:]
             if len(ctrl_points)<4:
