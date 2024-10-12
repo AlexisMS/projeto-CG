@@ -134,3 +134,5 @@ class Curva2D_bezier(WireFrame):
         self.type = str(len(self.points))
         for p in self.points:
             print(type(p), p.get_str_point())
+        self.transform_matrix = numpy.identity(3)
+        self.center = self.set_center()
