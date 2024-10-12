@@ -122,7 +122,6 @@ class Segment_Curva2D_bezier(WireFrame):
 class Curva2D_bezier(WireFrame):
     def __init__(self, name: str, ctrl_points: list[Point], steps: int):
         self.name = name
-        self.ctrl_point_ammount = len(ctrl_points)
         self.ctrl_points = ctrl_points
         self.points = []
         while(1):
