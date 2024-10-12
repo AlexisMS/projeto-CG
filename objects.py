@@ -101,9 +101,8 @@ class WireFrame():
             point.set_y(point_matrix[1])
         self.set_center()
 
-class Curva2D_bezier(WireFrame):
-    def __init__(self, name: str, ctrl_points: list[Point], steps: int): # por enquanto assumindo apenas uma curva com 4 pontos de controle
-        self.name = name
+class Segment_Curva2D_bezier(WireFrame):
+    def __init__(self, ctrl_points: list[Point], steps: int):
         self.type = str(len(ctrl_points))
         self.ctrl_points = ctrl_points
         self.mb = numpy.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]]) # definição de bezier
@@ -113,9 +112,23 @@ class Curva2D_bezier(WireFrame):
         for i in range(1,steps+1):
             point = self.set_point(i/steps)
             self.points.append(point)
+        self.type = str(len(self.points))
     
     def set_point(self, t: float) -> Point:
         t_array = numpy.array([pow(t,3), pow(t,2), t, 1])
         temp = numpy.matmul(t_array, self.mb)
         return Point(numpy.matmul(temp, self.gbx), numpy.matmul(temp, self.gby))
-    
+
+class Curva2D_bezier(WireFrame):
+    def __init__(self, name: str, ctrl_points: list[Point], steps: int):
+        self.name = name
+        self.ctrl_point_ammount = len(ctrl_points)
+        self.ctrl_points = ctrl_points
+        self.points = []
+        while(1):
+            curve_segment = Segment_Curva2D_bezier([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3], ctrl_points[4]], steps)
+            self.points = self.points + curve_segment.get_points()
+            ctrl_points = ctrl_points[3:]
+            if len(ctrl_points)<4:
+                break
+        self.type = str(len(self.points))
