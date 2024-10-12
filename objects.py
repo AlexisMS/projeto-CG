@@ -117,13 +117,14 @@ class Segment_Curva2D_bezier(WireFrame):
     def set_point(self, t: float) -> Point:
         t_array = numpy.array([pow(t,3), pow(t,2), t, 1])
         temp = numpy.matmul(t_array, self.mb)
-        return Point(numpy.matmul(temp, self.gbx), numpy.matmul(temp, self.gby))
+        return Point(numpy.matmul(temp, self.gbx)[0], numpy.matmul(temp, self.gby)[0])
 
 class Curva2D_bezier(WireFrame):
     def __init__(self, name: str, ctrl_points: list[Point], steps: int):
         self.name = name
         self.ctrl_points = ctrl_points
         self.points = []
+        self.normalized_points = []
         while(1):
             curve_segment = Segment_Curva2D_bezier([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3]], steps)
             self.points = self.points + curve_segment.get_points()
@@ -131,3 +132,5 @@ class Curva2D_bezier(WireFrame):
             if len(ctrl_points)<4:
                 break
         self.type = str(len(self.points))
+        for p in self.points:
+            print(type(p), p.get_str_point())
