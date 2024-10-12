@@ -607,24 +607,10 @@ class MainWindow(QMainWindow):
                 self.scene.addLine(
                 f_transformed_point.get_x(), f_transformed_point.get_y(),
                 l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
-            self.scene.addLine(
-                last_transformed_point.get_x(), last_transformed_point.get_y(),
-                first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
-            # first_point = obj.get_normalized_points()[0]
-            # last_point = obj.get_normalized_points()[-1]
-            # first_transformed_point = self.viewport_transform(first_point)
-            # last_transformed_point = self.viewport_transform(last_point)
-            # for i in range(len(obj.get_normalized_points())-1):
-            #     f_point = obj.get_normalized_points()[i]
-            #     l_point = obj.get_normalized_points()[i+1]
-            #     f_transformed_point = self.viewport_transform(f_point)
-            #     l_transformed_point = self.viewport_transform(l_point)
-            #     self.scene.addLine(
-            #     f_transformed_point.get_x(), f_transformed_point.get_y(),
-            #     l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
-            # self.scene.addLine(
-            #     last_transformed_point.get_x(), last_transformed_point.get_y(),
-            #     first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
+            if obj.get_type() != "curve":
+                self.scene.addLine(
+                    last_transformed_point.get_x(), last_transformed_point.get_y(),
+                    first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
     
     # Desenha um objeto
     def draw_object(self, obj: WireFrame):
