@@ -193,6 +193,7 @@ class NewCurveDialog(QWidget):
     def new_Point(self, n: int) -> None:
         x = int(self.x_coord[n].text())
         y = int(self.y_coord[n].text())
+        print(x, y)
         self.ctrl_points.append(Point(x, y))
     
     @Slot()
@@ -208,7 +209,7 @@ class NewCurveDialog(QWidget):
             logging.info("wireframe não criado: campos precisam ser preenchidos")
             self.close()
         else:
-            for n in range(point_ammount):
+            for n in range(len(self.x_coord)):
                 self.new_Point(n)
             obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
             obj.apply_normalized(normalized_matrix)
