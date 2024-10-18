@@ -135,3 +135,34 @@ class Curva2D_bezier(WireFrame):
             print(type(p), p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
+
+class Curva2D_fwd_diff(WireFrame):
+    def __init__(self, name: str, ctrl_points: list[Point]):
+        self.name = name
+        self.ctrl_points = ctrl_points
+        self.points = []
+        self.normalized_points = []
+        self.type = "curve"
+        # TODO chamar fwd_diff pra calcular cada segmento
+
+    def fwd_diff(self, n, x, dx, d2x, d3x, y, dy, d2y, d3y): #, z, dz, d2z, d3z):
+        i = 1
+        x_old = x
+        y_old = y
+        #z_old = z
+        while(i<n):
+            i += 1
+            x += dx
+            dx += d2x
+            d2x += d3x
+            y += dy
+            dy += d2y
+            d2y += d3y
+            #z += dz
+            #dz += d2z
+            #d2z += d3z
+            self.points.append(Point(x_old, y_old))
+            self.points.append(Point(x, y))
+            x_old = x
+            y_old = y
+            #z_old = z
