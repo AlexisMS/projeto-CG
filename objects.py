@@ -153,7 +153,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         Mbs = numpy.array([[2, -2, 1, 1],[-3, 3, -2, 1],[0, 0, 1, 0],[1, 0, 0, 0]])
         # Gbsx = [[P1x],[P4x],[R1x],[R4x]]
         # Gbsy = [[P1y],[P4y],[R1y],[R4y]]
-        # definir delta arbitrário
+        # definir delta (arbitrário)
         # valores para o primeiro ponto:
         # f0 = d
         # df0 = a*delta^3 + b*delta^2 + c*delta
