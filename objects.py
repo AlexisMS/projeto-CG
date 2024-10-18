@@ -138,6 +138,12 @@ class Curva2D_bezier(WireFrame):
 
 class Curva2D_fwd_diff(WireFrame):
     def __init__(self, name: str, ctrl_points: list[Point]):
+        # similar ao curva2D_bezier, usa o segment_curva2d_fwd_diff pra ir criando segmentos usando 4 pontos por vez
+        # aceita qualquer número de pontos igual ou maior que 4
+        pass
+
+class Segment_Curva2D_fwd_diff(WireFrame):
+    def __init__(self, name: str, ctrl_points: list[Point]): # aceita especificamente 4 pontos
         self.name = name
         self.ctrl_points = ctrl_points
         self.points = []
