@@ -143,8 +143,10 @@ class Curva2D_fwd_diff(WireFrame):
         self.points = []
         self.normalized_points = []
         self.type = "curve"
-        # calcular coeficientes a, b, c, d, usando C=Mbs*Gbs
+        # calcular coeficientes a, b, c, d para x e y, usando C=Mbs*Gbs
         Mbs = numpy.array([[2, -2, 1, 1],[-3, 3, -2, 1],[0, 0, 1, 0],[1, 0, 0, 0]])
+        # Gbsx = [[P1x],[P4x],[R1x],[R4x]]
+        # Gbsy = [[P1y],[P4y],[R1y],[R4y]]
         # definir delta arbitrário
         # valores para o primeiro ponto:
         # f0 = d
