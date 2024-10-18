@@ -143,7 +143,14 @@ class Curva2D_fwd_diff(WireFrame):
         self.points = []
         self.normalized_points = []
         self.type = "curve"
-        # TODO chamar fwd_diff pra calcular cada segmento
+        # calcular coeficientes a, b, c, d
+        # definir delta arbitrário
+        # valores iniciais:
+        # f0 = d
+        # df0 = a*delta^3 + b*delta^2 + c*delta
+        # d2f0 = 6*a*delta^3 + 2*b*delta^2
+        # d3f0 = 6*a*delta^3
+        # chamar fwd_diff para gerar os pontos da curva
 
     def fwd_diff(self, n, x, dx, d2x, d3x, y, dy, d2y, d3y): #, z, dz, d2z, d3z):
         i = 1
