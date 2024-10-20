@@ -5,7 +5,7 @@ from PySide6.QtWidgets import *
 
 from display_file import DisplayFile
 from window import Window
-from objects import WireFrame, Point, Curva2D_bezier
+from objects import WireFrame, Point, Curva2D_bezier, Curva2D_fwd_diff
 from objhandler import ObjHandler
 from transform_functions import *
 from clipping_functions import *
@@ -143,29 +143,8 @@ class NewCurveDialog(QWidget):
         self.y_label = []
         self.y_coord = []
 
-        for n in range(point_amount*4-(point_amount-1)):
-            self.x_label.append(QLabel("X"+str(n)))
-            self.x_coord.append(QLineEdit())
-            self.y_label.append(QLabel("Y"+str(n)))
-            self.y_coord.append(QLineEdit())
-
-        self.buttonCreateObject = QPushButton("Criar Curva")
-        self.buttonCreateObject.clicked.connect(lambda : self.new_Curve(point_amount, normalized_matrix))
-        self.file_label = QLabel("Nome do arquivo")
-        self.file_name = QLineEdit()
-        self.file_open_button = QPushButton("Ler arquivo")
-        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
         self.point_layout = []
         self.point_widget = []
-
-        for n in range(point_amount*4-(point_amount-1)):
-            self.point_layout.append(QHBoxLayout())
-            self.point_layout[n].addWidget(self.x_label[n])
-            self.point_layout[n].addWidget(self.x_coord[n])
-            self.point_layout[n].addWidget(self.y_label[n])
-            self.point_layout[n].addWidget(self.y_coord[n])
-            self.point_widget.append(QWidget())
-            self.point_widget[n].setLayout(self.point_layout[n])
 
         self.name_label = QLabel("Nome da Curva")
         self.name_entry = QLineEdit()
@@ -175,19 +154,65 @@ class NewCurveDialog(QWidget):
         self.name_widget = QWidget()
         self.name_widget.setLayout(self.name_layout)
 
+        self.buttonCreateObject = QPushButton("Criar Curva")
+        self.buttonCreateObject.clicked.connect(lambda : self.new_Curve(point_amount, normalized_matrix))
+        self.file_label = QLabel("Nome do arquivo")
+        self.file_name = QLineEdit()
+        self.file_open_button = QPushButton("Ler arquivo")
+        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
+        self.files_layout = QVBoxLayout()
+
+        self.type_label = QLabel("Tipo da Curva")
+        self.type_button_1 = QRadioButton("Bezier")
+        self.type_button_2 = QRadioButton("BSpline")
+        self.type_button_1.setChecked(True)
+        self.type_button_layout = QHBoxLayout()
+        self.type_button_layout.addWidget(self.type_label, 2)
+        self.type_button_layout.addWidget(self.type_button_1, 1)
+        self.type_button_layout.addWidget(self.type_button_2, 1)
+        self.type_button_widget = QWidget()
+        self.type_button_widget.setLayout(self.type_button_layout)
+
+        self.add_points = QPushButton("Adicionar pontos")
+        self.add_points.clicked.connect(lambda : self.add_Points(point_amount*4))
+
         # Configura o layout
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.name_widget)
+        self.layouts = QVBoxLayout()
+        self.layouts.addWidget(self.name_widget)
+        self.layouts.addWidget(self.type_button_widget)
+        self.layouts.addWidget(self.add_points)
 
-        for n in range(point_amount*4-(point_amount-1)):
-            self.layout.addWidget(self.point_widget[n])
-
-        self.layout.addWidget(self.buttonCreateObject)
-        self.layout.addWidget(self.file_label)
-        self.layout.addWidget(self.file_name)
-        self.layout.addWidget(self.file_open_button)
-        self.setLayout(self.layout)
+        self.setLayout(self.layouts)
         self.setWindowTitle("Nova Curva")
+    
+    
+    @Slot()
+    def add_Points(self, point_amount):
+        if self.type_button_1.isChecked():
+            point_amount -= 1
+        for n in range(point_amount):
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+        
+        for n in range(point_amount):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+
+        for n in range(point_amount):
+            self.layouts.addWidget(self.point_widget[n])
+            
+        self.layouts.addWidget(self.buttonCreateObject)
+        self.layouts.addWidget(self.file_label)
+        self.layouts.addWidget(self.file_name)
+        self.layouts.addWidget(self.file_open_button)
+        self.setLayout(self.layouts)
 
     @Slot()
     def new_Point(self, n: int) -> None:
@@ -211,7 +236,10 @@ class NewCurveDialog(QWidget):
         else:
             for n in range(len(self.x_coord)):
                 self.new_Point(n)
-            obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
+            if self.type_button_1.isChecked():
+                obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
+            else:
+                obj = Curva2D_fwd_diff(self.name_entry.text().upper(), self.ctrl_points, 0.001)                
             obj.apply_normalized(normalized_matrix)
             screen.draw_object(obj)
             screen.update_objects_names()
