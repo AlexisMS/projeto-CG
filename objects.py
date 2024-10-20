@@ -138,28 +138,46 @@ class Curva2D_bezier(WireFrame):
 
 class Curva2D_fwd_diff(WireFrame):
     def __init__(self, name: str, ctrl_points: list[Point]):
-        # similar ao curva2D_bezier, usa o segment_curva2d_fwd_diff pra ir criando segmentos usando 4 pontos por vez
-        # aceita qualquer número de pontos igual ou maior que 4
-        pass
-
-class Segment_Curva2D_fwd_diff(WireFrame):
-    def __init__(self, name: str, ctrl_points: list[Point]): # aceita especificamente 4 pontos
         self.name = name
         self.ctrl_points = ctrl_points
         self.points = []
         self.normalized_points = []
         self.type = "curve"
+        while(1):
+            curve_segment = Segment_Curva2D_fwd_diff([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3]], steps)
+            self.points = self.points + curve_segment.get_points()
+            ctrl_points = ctrl_points[1:]
+            if len(ctrl_points)<4:
+                break
+        self.transform_matrix = numpy.identity(3)
+        self.center = self.set_center()
+
+class Segment_Curva2D_fwd_diff(WireFrame):
+    def __init__(self, name: str, ctrl_points: list[Point]): # aceita especificamente 4 pontos
+        self.ctrl_points = ctrl_points
+        self.points = []
+        self.normalized_points = []
+        self.type = "curve"
         # calcular coeficientes a, b, c, d para x e y, usando C=Mbs*Gbs
-        Mbs = numpy.array([[2, -2, 1, 1],[-3, 3, -2, 1],[0, 0, 1, 0],[1, 0, 0, 0]])
-        # Gbsx = [[P1x],[P4x],[R1x],[R4x]]
-        # Gbsy = [[P1y],[P4y],[R1y],[R4y]]
-        # definir delta (arbitrário)
+        self.Mbs = numpy.array([[-1/6, 3/6, -3/6, 1/6],[3/6, -6/6, 3/6, 0],[-3/6, 0, 3/6, 0],[1/6, 4/6, 1/6, 0]])
+        self.Gbsx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
+        self.Gbsy = numpy.array([[ctrl_points[0].get_y()], [ctrl_points[1].get_y()], [ctrl_points[2].get_y()], [ctrl_points[3].get_y()]])
+        cx = numpy.dot(self.Mbs, self.Gbsx)
+        cy = numpy.dot(self.Mbs, self.Gbsy)
+        delta = 0.001
+        delta
         # valores para o primeiro ponto:
-        # f0 = d
-        # df0 = a*delta^3 + b*delta^2 + c*delta
-        # d2f0 = 6*a*delta^3 + 2*b*delta^2
-        # d3f0 = 6*a*delta^3
+        f0x = cx[3]
+        df0x = cx[0]*delta^3 + cx[1]*delta^2 + cx[2]*delta
+        d2f0x = 6*cx[0]*delta^3 + 2*cx[1]*delta^2
+        d3f0x = 6*cx[0]*delta^3
+
+        f0y = cy[3]
+        df0y = cy[0]*delta^3 + cy[1]*delta^2 + cy[2]*delta
+        d2f0y = 6*cy[0]*delta^3 + 2*cy[1]*delta^2
+        d3f0y = 6*cy[0]*delta^3
         # chamar fwd_diff para gerar os outros pontos da curva
+        self.fwd_diff(None, f0x, df0x, d2f0x, d3f0x, f0y, df0y, d2f0y, d3f0y)
 
     def fwd_diff(self, n, x, dx, d2x, d3x, y, dy, d2y, d3y): #, z, dz, d2z, d3z):
         i = 1
