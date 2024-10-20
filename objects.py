@@ -149,8 +149,8 @@ class Curva2D_fwd_diff(WireFrame):
             ctrl_points = ctrl_points[1:]
             if len(ctrl_points)<4:
                 break
-        # for p in self.points:
-        #     print(p.get_str_point())
+        for p in self.points:
+            print(p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
@@ -186,7 +186,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         i = 1
         x_old = x
         y_old = y
-        self.points.append(Point(x_old, y_old))
+        self.points.append(Point(float(x_old[-1]), float(y_old[-1])))
         #z_old = z
         while(i<n):
             i += 1
@@ -199,7 +199,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
             #z += dz
             #dz += d2z
             #d2z += d3z
-            self.points.append(Point(x, y))
+            self.points.append(Point(float(x[-1]), float(y[-1])))
             x_old = x
             y_old = y
             #z_old = z
