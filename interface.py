@@ -174,7 +174,7 @@ class NewCurveDialog(QWidget):
         self.type_button_widget.setLayout(self.type_button_layout)
 
         self.add_points = QPushButton("Adicionar pontos")
-        self.add_points.clicked.connect(lambda : self.add_Points(point_amount*4))
+        self.add_points.clicked.connect(lambda : self.add_Points(point_amount))
 
         # Configura o layout
         self.layouts = QVBoxLayout()
@@ -189,7 +189,9 @@ class NewCurveDialog(QWidget):
     @Slot()
     def add_Points(self, point_amount):
         if self.type_button_1.isChecked():
-            point_amount -= 1
+            point_amount = point_amount*4 - (point_amount-1)
+        else:
+            point_amount += 3
         for n in range(point_amount):
             self.x_label.append(QLabel("X"+str(n)))
             self.x_coord.append(QLineEdit())
