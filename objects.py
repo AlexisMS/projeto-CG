@@ -161,8 +161,8 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         self.normalized_points = []
         self.type = "curve"
         # calcular coeficientes a, b, c, d para x e y, usando C=Mbs*Gbs
-        self.Mbs = numpy.array([[-1/6, 3/6, -3/6, 1/6],[3/6, -6/6, 3/6, 0],[-3/6, 0, 3/6, 0],[1/6, 4/6, 1/6, 0]])
-        self.Mbs_inv = numpy.linalg.inv(self.Mbs)
+        self.Mbs = numpy.array([[-1/6, 3/6, -3/6, 1/6],[3/6, -6/6, 3/6, 0],[-3/6, 0, 3/6, 0],[1/6, 4/6, 1/6, 0]]) #checar slide para ver se é isso mesmo
+        self.Mbs_inv = numpy.linalg.inv(self.Mbs) #talvez não precise
         self.Gbsx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
         self.Gbsy = numpy.array([[ctrl_points[0].get_y()], [ctrl_points[1].get_y()], [ctrl_points[2].get_y()], [ctrl_points[3].get_y()]])
         cx = numpy.matmul(self.Mbs_inv, self.Gbsx)
@@ -170,7 +170,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         delta2 = delta**2
         delta3 = delta**3
         # valores para o primeiro ponto:
-        f0x = cx[3]
+        f0x = cx[3] #talvez precise ser cx[0][3] para acessar?
         df0x = cx[0]*delta3 + cx[1]*delta2 + cx[2]*delta
         d2f0x = 6*cx[0]*delta3 + 2*cx[1]*delta2
         d3f0x = 6*cx[0]*delta3
@@ -178,6 +178,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         df0y = cy[0]*delta3 + cy[1]*delta2 + cy[2]*delta
         d2f0y = 6*cy[0]*delta3 + 2*cy[1]*delta2
         d3f0y = 6*cy[0]*delta3
+        self.points.append(Point(float(f0x), float(f0y))) #talvez precise de [-1]?
         # chamar fwd_diff para gerar os outros pontos da curva
         self.fwd_diff(1/delta, f0x, df0x, d2f0x, d3f0x, f0y, df0y, d2f0y, d3f0y)
 
