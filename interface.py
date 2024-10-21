@@ -239,7 +239,7 @@ class NewCurveDialog(QWidget):
             if self.type_button_1.isChecked():
                 obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
             else:
-                obj = Curva2D_fwd_diff(self.name_entry.text().upper(), self.ctrl_points, 0.001)                
+                obj = Curva2D_fwd_diff(self.name_entry.text().upper(), self.ctrl_points, 0.1)                
             obj.apply_normalized(normalized_matrix)
             screen.draw_object(obj)
             screen.update_objects_names()
