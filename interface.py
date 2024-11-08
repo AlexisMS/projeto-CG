@@ -20,75 +20,19 @@ class QTextEditLogger(logging.Handler):
         msg = self.format(record)
         self.widget.appendPlainText(msg)
 
-
-class NewObjectDialog(QWidget):
-    def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
+class NewDialog(QWidget):
+    def __init__(self, n_points:int, normalized_matrix:numpy.ndarray):
         super().__init__()
+
+        self.ctrl_points = []
         self.points = []
         self.x_label = []
         self.x_coord = []
         self.y_label = []
         self.y_coord = []
-
-        for n in range(point_amount): 
-            self.x_label.append(QLabel("X"+str(n)))
-            self.x_coord.append(QLineEdit())
-            self.y_label.append(QLabel("Y"+str(n)))
-            self.y_coord.append(QLineEdit())
-
-        self.buttonCreateObject = QPushButton("Criar objeto")
-        self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount, normalized_matrix))
-        self.file_label = QLabel("Nome do arquivo")
-        self.file_name = QLineEdit()
-        self.file_open_button = QPushButton("Ler arquivo")
-        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
         self.point_layout = []
         self.point_widget = []
 
-        for n in range(point_amount):
-            self.point_layout.append(QHBoxLayout())
-            self.point_layout[n].addWidget(self.x_label[n])
-            self.point_layout[n].addWidget(self.x_coord[n])
-            self.point_layout[n].addWidget(self.y_label[n])
-            self.point_layout[n].addWidget(self.y_coord[n])
-            self.point_widget.append(QWidget())
-            self.point_widget[n].setLayout(self.point_layout[n])
-
-        self.name_label = QLabel("Nome do Objeto")
-        self.name_entry = QLineEdit()
-        self.name_layout = QHBoxLayout()
-        self.name_layout.addWidget(self.name_label)
-        self.name_layout.addWidget(self.name_entry)
-        self.name_widget = QWidget()
-        self.name_widget.setLayout(self.name_layout)
-
-        # Configura o layout
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.name_widget)
-        
-        if point_amount >= 3:
-            self.type_label = QLabel("Tipo do Objeto")
-            self.type_button_1 = QRadioButton("Arame")
-            self.type_button_2 = QRadioButton("Preenchido")
-            self.type_button_1.setChecked(True)
-            self.type_button_layout = QHBoxLayout()
-            self.type_button_layout.addWidget(self.type_label, 2)
-            self.type_button_layout.addWidget(self.type_button_1, 1)
-            self.type_button_layout.addWidget(self.type_button_2, 1)
-            self.type_button_widget = QWidget()
-            self.type_button_widget.setLayout(self.type_button_layout)
-            self.layout.addWidget(self.type_button_widget)
-
-        for n in range(point_amount):
-            self.layout.addWidget(self.point_widget[n])
-
-        self.layout.addWidget(self.buttonCreateObject)
-        self.layout.addWidget(self.file_label)
-        self.layout.addWidget(self.file_name)
-        self.layout.addWidget(self.file_open_button)
-        self.setLayout(self.layout)
-        self.setWindowTitle("Novo Objeto")
-    
     @Slot()
     def new_Point(self, n: int) -> None:
         x = int(self.x_coord[n].text())
@@ -96,7 +40,7 @@ class NewObjectDialog(QWidget):
         self.points.append(Point(x, y))
     
     @Slot()
-    def new_Object(self, point_ammount: int, normalized_matrix: numpy.ndarray) -> None:
+    def new_object(self, n_points: int, normalized_matrix: numpy.ndarray) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -108,7 +52,7 @@ class NewObjectDialog(QWidget):
             logging.info("wireframe não criado: campos precisam ser preenchidos")
             self.close()
         else:
-            for n in range(point_ammount):
+            for n in range(n_points):
                 self.new_Point(n)
             obj = WireFrame(self.name_entry.text().upper(), self.points)
             obj.apply_normalized(normalized_matrix)
@@ -120,19 +64,177 @@ class NewObjectDialog(QWidget):
             logging.info(message)
             self.close()
 
-    @Slot()
-    def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
-        handler = ObjHandler()
-        new_objects = handler.open_file(file_name)
-        for obj in new_objects:
-            obj.apply_normalized(normalized_matrix)
-            screen.draw_object(obj)
-            screen.update_objects_names()
-            message = ("wireframe "+obj.get_name()+"<"
-                       +obj.get_type()+"> criado em "
-                       +obj.get_str_points())
-            logging.info(message)
-        self.close()
+    # @Slot()
+    # def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
+    #     handler = ObjHandler()
+    #     new_objects = handler.open_file(file_name)
+    #     for obj in new_objects:
+    #         obj.apply_normalized(normalized_matrix)
+    #         screen.draw_object(obj)
+    #         screen.update_objects_names()
+    #         message = ("wireframe "+obj.get_name()+"<"
+    #                    +obj.get_type()+"> criado em "
+    #                    +obj.get_str_points())
+    #         logging.info(message)
+    #     self.close()
+
+class New2DObjectDialog(NewDialog):
+    def __init__(self, n_points, normalized_matrix):
+        super().__init__(n_points, normalized_matrix)
+
+        self.name_label = QLabel("Nome Objeto")
+        self.name_entry = QLineEdit()
+        self.name_layout = QHBoxLayout()
+        self.name_layout.addWidget(self.name_label)
+        self.name_layout.addWidget(self.name_entry)
+        self.name_widget = QWidget()
+        self.name_widget.setLayout(self.name_layout)
+        for n in range(n_points): 
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+        for n in range(n_points):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+        self.create_object_button = QPushButton("Criar objeto")
+        self.create_object_button.clicked.connect(lambda : self.new_object(n_points, normalized_matrix))
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.name_widget)
+        if n_points >= 3:
+            self.type_label = QLabel("Tipo do Objeto")
+            self.type_button_1 = QRadioButton("Arame")
+            self.type_button_2 = QRadioButton("Preenchido")
+            self.type_button_1.setChecked(True)
+            self.type_button_layout = QHBoxLayout()
+            self.type_button_layout.addWidget(self.type_label, 2)
+            self.type_button_layout.addWidget(self.type_button_1, 1)
+            self.type_button_layout.addWidget(self.type_button_2, 1)
+            self.type_button_widget = QWidget()
+            self.type_button_widget.setLayout(self.type_button_layout)
+            self.layout.addWidget(self.type_button_widget)
+        for n in range(n_points):
+            self.layout.addWidget(self.point_widget[n])
+        self.layout.addWidget(self.create_object_button)
+        self.setLayout(self.layout)
+
+    # def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
+    #     super().__init__()
+    #     self.points = []
+    #     self.x_label = []
+    #     self.x_coord = []
+    #     self.y_label = []
+    #     self.y_coord = []
+
+    #     for n in range(point_amount): 
+    #         self.x_label.append(QLabel("X"+str(n)))
+    #         self.x_coord.append(QLineEdit())
+    #         self.y_label.append(QLabel("Y"+str(n)))
+    #         self.y_coord.append(QLineEdit())
+
+    #     self.buttonCreateObject = QPushButton("Criar objeto")
+    #     self.buttonCreateObject.clicked.connect(lambda : self.new_Object(point_amount, normalized_matrix))
+    #     self.file_label = QLabel("Nome do arquivo")
+    #     self.file_name = QLineEdit()
+    #     self.file_open_button = QPushButton("Ler arquivo")
+    #     self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
+    #     self.point_layout = []
+    #     self.point_widget = []
+
+    #     for n in range(point_amount):
+    #         self.point_layout.append(QHBoxLayout())
+    #         self.point_layout[n].addWidget(self.x_label[n])
+    #         self.point_layout[n].addWidget(self.x_coord[n])
+    #         self.point_layout[n].addWidget(self.y_label[n])
+    #         self.point_layout[n].addWidget(self.y_coord[n])
+    #         self.point_widget.append(QWidget())
+    #         self.point_widget[n].setLayout(self.point_layout[n])
+
+    #     self.name_label = QLabel("Nome do Objeto")
+    #     self.name_entry = QLineEdit()
+    #     self.name_layout = QHBoxLayout()
+    #     self.name_layout.addWidget(self.name_label)
+    #     self.name_layout.addWidget(self.name_entry)
+    #     self.name_widget = QWidget()
+    #     self.name_widget.setLayout(self.name_layout)
+
+    #     # Configura o layout
+    #     self.layout = QVBoxLayout()
+    #     self.layout.addWidget(self.name_widget)
+        
+    #     if point_amount >= 3:
+    #         self.type_label = QLabel("Tipo do Objeto")
+    #         self.type_button_1 = QRadioButton("Arame")
+    #         self.type_button_2 = QRadioButton("Preenchido")
+    #         self.type_button_1.setChecked(True)
+    #         self.type_button_layout = QHBoxLayout()
+    #         self.type_button_layout.addWidget(self.type_label, 2)
+    #         self.type_button_layout.addWidget(self.type_button_1, 1)
+    #         self.type_button_layout.addWidget(self.type_button_2, 1)
+    #         self.type_button_widget = QWidget()
+    #         self.type_button_widget.setLayout(self.type_button_layout)
+    #         self.layout.addWidget(self.type_button_widget)
+
+    #     for n in range(point_amount):
+    #         self.layout.addWidget(self.point_widget[n])
+
+    #     self.layout.addWidget(self.buttonCreateObject)
+    #     self.layout.addWidget(self.file_label)
+    #     self.layout.addWidget(self.file_name)
+    #     self.layout.addWidget(self.file_open_button)
+    #     self.setLayout(self.layout)
+    #     self.setWindowTitle("Novo Objeto")
+    
+    # @Slot()
+    # def new_Point(self, n: int) -> None:
+    #     x = int(self.x_coord[n].text())
+    #     y = int(self.y_coord[n].text())
+    #     self.points.append(Point(x, y))
+    
+    # @Slot()
+    # def new_Object(self, point_ammount: int, normalized_matrix: numpy.ndarray) -> None:
+    #     # Checa se há valor vazio em alguma coordenada submetida
+    #     empty_coord = False
+    #     for i in range(len(self.x_coord)):
+    #         if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+    #             empty_coord = True
+    #             break
+    #     # Cancela criação de objetos se não cumprir algum requisito
+    #     if self.name_entry.text() == "" or empty_coord:
+    #         logging.info("wireframe não criado: campos precisam ser preenchidos")
+    #         self.close()
+    #     else:
+    #         for n in range(point_ammount):
+    #             self.new_Point(n)
+    #         obj = WireFrame(self.name_entry.text().upper(), self.points)
+    #         obj.apply_normalized(normalized_matrix)
+    #         screen.draw_object(obj)
+    #         screen.update_objects_names()
+    #         message = ("wireframe "+obj.get_name()+"<"
+    #                    +obj.get_type()+"> criado em "
+    #                    +obj.get_str_points())
+    #         logging.info(message)
+    #         self.close()
+
+    # @Slot()
+    # def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
+    #     handler = ObjHandler()
+    #     new_objects = handler.open_file(file_name)
+    #     for obj in new_objects:
+    #         obj.apply_normalized(normalized_matrix)
+    #         screen.draw_object(obj)
+    #         screen.update_objects_names()
+    #         message = ("wireframe "+obj.get_name()+"<"
+    #                    +obj.get_type()+"> criado em "
+    #                    +obj.get_str_points())
+    #         logging.info(message)
+    #     self.close()
 
 class NewCurveDialog(QWidget):
     def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
@@ -265,13 +367,44 @@ class NewCurveDialog(QWidget):
             logging.info(message)
         self.close()
 
+class NewObjectWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.tabs = QTabWidget()
+        
+        self.n_points = QSpinBox()
+        self.n_points.setMinimum(1)
+
+        self.tabs.addTab(New2DObjectDialog(), "Objeto 2D")
+        
+        n_points_label = QLabel("Número de pontos")
+        n_points_layout = QHBoxLayout()
+        n_points_layout.addWidget(n_points_label)
+        n_points_layout.addWidget(self.n_points)
+        n_points_widget = QWidget()
+        n_points_widget.setLayout(self.point_amount_layout)
+
+        add_points = QPushButton("Adicionar pontos")
+
+        create_button = QPushButton("Criar Objeto 2D")
+    
+    def build_tab_object3d(self):
+        pass
+
+    def build_tab_curve2d(self):
+        self.tabs.addTab(NewCurveDialog(), "curva 2D")
+        main_layout = QVBoxLayout()
+
 class SubWindows():
-    def open_NewObjectDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
-        self.new_window = NewObjectDialog(point_amount, normalized_matrix)
+    def open_new_object_window(self):
+        self.new_window = NewObjectWindow()
         self.new_window.show()
-    def open_NewCurveDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
-        self.new_window = NewCurveDialog(point_amount, normalized_matrix)
-        self.new_window.show()
+    # def open_NewObjectDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
+    #     self.new_window = NewObjectDialog(point_amount, normalized_matrix)
+    #     self.new_window.show()
+    # def open_NewCurveDialog(self, point_amount: int, normalized_matrix: numpy.ndarray):
+    #     self.new_window = NewCurveDialog(point_amount, normalized_matrix)
+    #     self.new_window.show()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -281,7 +414,6 @@ class MainWindow(QMainWindow):
         self.subWindows = SubWindows() # Janelas Extras
         self.scene = QGraphicsScene() # Cenário
         self.scene.setBackgroundBrush(QColor('grey'))
-        # self.scene.setSceneRect(0,0,800,600)
         self.viewport = QGraphicsView(self.scene) # Viewport
         self.viewport.setFixedSize(800,600)
         self.viewport.setMinimumHeight(0)
@@ -292,45 +424,59 @@ class MainWindow(QMainWindow):
         self.viewport.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pen = QPen()
 
-        self.logTextBox = QTextEditLogger()# Interface de Log
+        # Interface de Log
+        self.logTextBox = QTextEditLogger()
         self.logTextBox.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logging.getLogger().addHandler(self.logTextBox)
         logging.getLogger().setLevel(logging.DEBUG)
 
         # Interface para iniciar criação de objetos
-        self.create_object_point_amount_label = QLabel("Número de pontos/curvas:")
-        self.create_object_point_amount = QSpinBox()
-        self.create_object_point_amount.setMinimum(1)
-        self.create_object_point_amount_layout = QHBoxLayout()
-        self.create_object_point_amount_layout.addWidget(self.create_object_point_amount_label)
-        self.create_object_point_amount_layout.addWidget(self.create_object_point_amount)
-        self.create_object_point_amount_widget = QWidget()
-        self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
-        self.create_object_button = QPushButton("Novo Objeto")
-        self.create_object_button.clicked.connect(lambda : self.subWindows.open_NewObjectDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
-        self.create_curve_button = QPushButton("Nova Curva")
-        self.create_curve_button.clicked.connect(lambda : self.subWindows.open_NewCurveDialog(self.create_object_point_amount.value(), self.windows.get_normalization_matrix()))
+        # self.create_object_point_amount_label = QLabel("Número de pontos/curvas:")
+        # self.create_object_point_amount = QSpinBox()
+        # self.create_object_point_amount.setMinimum(1)
+        # self.create_object_point_amount_layout = QHBoxLayout()
+        # self.create_object_point_amount_layout.addWidget(self.create_object_point_amount_label)
+        # self.create_object_point_amount_layout.addWidget(self.create_object_point_amount)
+        # self.create_object_point_amount_widget = QWidget()
+        # self.create_object_point_amount_widget.setLayout(self.create_object_point_amount_layout)
 
         # Interface de clipping
+        self.clipping_menu = QGroupBox("Clipping")
+        self.clipping_button_layout = QVBoxLayout()
         self.clipping_button_1 = QRadioButton("Liang-Barsky")
         self.clipping_button_2 = QRadioButton("Cohen-Sutherland")
         self.clipping_button_1.setChecked(True)
-        self.clipping_button_layout = QVBoxLayout()
         self.clipping_button_layout.addWidget(self.clipping_button_1)
         self.clipping_button_layout.addWidget(self.clipping_button_2)
-        self.clipping_button_menu = QGroupBox("Clipping")
-        self.clipping_button_menu.setLayout(self.clipping_button_layout)
+        self.clipping_menu.setLayout(self.clipping_button_layout)
 
         # SOMENTE PARA TESTES
         # self.scene.addRect(1000, 75, 600, 450)
 
-        # Botões referentes a função de zoom
+        # Interface dos objetos
+        self.objects_menu = QGroupBox("Objetos")
+        self.objects_layout = QVBoxLayout()
+        self.object_names = QListWidget()
+        self.create_object_button = QPushButton("Novo Objeto")
+        self.create_object_button.clicked.connect(self.subWindows.open_new_object_window)
+        self.objects_layout.addWidget(self.create_object_button)
+        self.objects_layout.addWidget(self.object_names)
+        self.objects_menu.setLayout(self.objects_layout)
+
+        # Interface de zoom
+        self.zoom_menu = QGroupBox("Zoom")
+        self.zoom_layout = QHBoxLayout()
         self.zoom_in_button = QPushButton("+")
         self.zoom_out_button = QPushButton("-")
         self.zoom_in_button.clicked.connect(self.zoom_In)
         self.zoom_out_button.clicked.connect(self.zoom_Out)
+        self.zoom_layout.addWidget(self.zoom_in_button)
+        self.zoom_layout.addWidget(self.zoom_out_button)
+        self.zoom_menu.setLayout(self.zoom_layout)
 
-        # Botões referentes a função de navegação
+        # Interface de navegação
+        self.nav_menu = QGroupBox("Navegação")
+        self.nav_layout = QGridLayout()
         self.nav_left_button = QPushButton("esquerda")
         self.nav_right_button = QPushButton("direita")
         self.nav_up_button = QPushButton("cima")
@@ -341,156 +487,121 @@ class MainWindow(QMainWindow):
         self.nav_up_button.clicked.connect(self.nav_up)
         self.nav_down_button.clicked.connect(self.nav_down)
         self.nav_center_button.clicked.connect(self.nav_center)
+        self.nav_layout.addWidget(self.nav_up_button, 1, 2)
+        self.nav_layout.addWidget(self.nav_left_button, 2, 1)
+        self.nav_layout.addWidget(self.nav_right_button, 2, 3)
+        self.nav_layout.addWidget(self.nav_down_button, 3, 2)
+        self.nav_layout.addWidget(self.nav_center_button, 2, 2)
+        self.nav_menu.setLayout(self.nav_layout)
 
-        # Botões das funções de transformação
-        self.angle_label = QLabel("graus")
-        self.angle_simbol_label = QLabel("°")
+        # Interface das transformações
+        self.transform_menu = QGroupBox("Transformações")
+        self.transform_layout = QVBoxLayout()
+        self.point_menu = QGroupBox("Ponto")
+        self.point_layout = QGridLayout()
         self.point_x_label = QLabel("X")
         self.point_y_label = QLabel("Y")
-        self.angle_entry = QLineEdit()
         self.point_x_entry = QLineEdit()
         self.point_y_entry = QLineEdit()
-        self.translate_button = QPushButton("translação")
-        self.schedule_button = QPushButton("escalonamento")
-        self.rotate_world_button = QPushButton("mundo")
-        self.rotate_object_button = QPushButton("objeto")
-        self.rotate_point_button = QPushButton("ponto")
-        self.rotate_window_button = QPushButton("janela")
-        self.translate_button.clicked.connect(self.translate)
-        self.schedule_button.clicked.connect(self.schedule)
-        self.rotate_object_button.clicked.connect(self.rotate_object)
-        self.rotate_world_button.clicked.connect(self.rotate_world)
-        self.rotate_point_button.clicked.connect(self.rotate_point)
-        self.rotate_window_button.clicked.connect(self.rotate_window)
-
-        # partes do salvamento de arquivo
-        self.file_name_label = QLabel("Nome do Arquivo")
-        self.file_name_entry = QLineEdit()
-        self.file_save_button = QPushButton("Salvar")
-        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
-
-        # Inicio dos layouts
-        # Layout do menu dos objetos
-        # Contém a lista de objetos e botão de criar objetos
-        self.object_names = QListWidget()
-        self.left_objects_layout = QGridLayout()
-        self.left_objects_layout.addWidget(self.create_object_point_amount_widget, 1, 1, 1, 2)  
-        self.left_objects_layout.addWidget(self.create_object_button, 2, 1)
-        self.left_objects_layout.addWidget(self.create_curve_button, 2, 2)
-        self.left_objects_layout.addWidget(self.object_names, 3, 1, 2, 2)
-        self.left_objects_menu = QGroupBox("Objetos")
-        self.left_objects_menu.setLayout(self.left_objects_layout)
-
-        # Layout do menu de zooms
-        # Contém todos os botões de zoom
-        self.left_zoom_layout = QHBoxLayout()
-        self.left_zoom_layout.addWidget(self.zoom_in_button)
-        self.left_zoom_layout.addWidget(self.zoom_out_button)
-        self.left_zoom_menu = QGroupBox("Zoom")
-        self.left_zoom_menu.setLayout(self.left_zoom_layout)
-
-        # Layout do menu de navegação
-        # Contém todos os botões de navegação
-        self.left_nav_layout = QGridLayout()
-        self.left_nav_layout.addWidget(self.nav_up_button, 1, 2)
-        self.left_nav_layout.addWidget(self.nav_left_button, 2, 1)
-        self.left_nav_layout.addWidget(self.nav_right_button, 2, 3)
-        self.left_nav_layout.addWidget(self.nav_down_button, 3, 2)
-        self.left_nav_layout.addWidget(self.nav_center_button, 2, 2)
-        self.left_nav_menu = QGroupBox("Navegação")
-        self.left_nav_menu.setLayout(self.left_nav_layout)
-
-        # Layout do menu de transformações
-        # Contém todos os widgets de transformações
-        self.point_layout = QGridLayout()
         self.point_layout.addWidget(self.point_x_label, 1, 1)
         self.point_layout.addWidget(self.point_x_entry, 2, 1)
         self.point_layout.addWidget(self.point_y_label, 1, 2)
         self.point_layout.addWidget(self.point_y_entry, 2, 2)
-        self.point_menu = QGroupBox("Ponto")
         self.point_menu.setLayout(self.point_layout)
-
+        self.angle_menu = QGroupBox("Ângulo")
         self.angle_layout = QGridLayout()
+        self.angle_label = QLabel("Graus")
+        self.angle_entry = QLineEdit()
+        self.angle_simbol_label = QLabel("°")
         self.angle_layout.addWidget(self.angle_label, 1,1)
         self.angle_layout.addWidget(self.angle_entry,2,1)
         self.angle_layout.addWidget(self.angle_simbol_label,2,2)
-        self.angle_menu = QGroupBox("Ângulo")
         self.angle_menu.setLayout(self.angle_layout)
-
+        self.entry_transform_menu = QWidget()
         self.entry_transform_layout = QHBoxLayout()
         self.entry_transform_layout.addWidget(self.point_menu)
         self.entry_transform_layout.addWidget(self.angle_menu)
-        self.entry_transform_menu = QWidget()
         self.entry_transform_menu.setLayout(self.entry_transform_layout)
+        self.transform_layout.addWidget(self.entry_transform_menu)
 
-        self.left_schedule_translate_layout = QHBoxLayout()
-        self.left_schedule_translate_layout.addWidget(self.translate_button)
-        self.left_schedule_translate_layout.addWidget(self.schedule_button)
-        self.left_schedule_translate_menu = QGroupBox("Deslocamento")
-        self.left_schedule_translate_menu.setLayout(self.left_schedule_translate_layout)
+        self.schedule_translate_menu = QGroupBox("Deslocamento")
+        self.schedule_translate_layout = QHBoxLayout()
+        self.translate_button = QPushButton("translação")
+        self.translate_button.clicked.connect(self.translate)
+        self.schedule_button = QPushButton("escalonamento")
+        self.schedule_button.clicked.connect(self.schedule)
+        self.schedule_translate_layout.addWidget(self.translate_button)
+        self.schedule_translate_layout.addWidget(self.schedule_button)
+        self.schedule_translate_menu.setLayout(self.schedule_translate_layout)
+        self.transform_layout.addWidget(self.schedule_translate_menu)
 
+        self.rotate_menu = QGroupBox("Rotação")
         self.rotate_layout = QGridLayout()
+        self.rotate_world_button = QPushButton("mundo")
+        self.rotate_world_button.clicked.connect(self.rotate_world)
+        self.rotate_object_button = QPushButton("objeto")
+        self.rotate_object_button.clicked.connect(self.rotate_object)
+        self.rotate_point_button = QPushButton("ponto")
+        self.rotate_point_button.clicked.connect(self.rotate_point)
+        self.rotate_window_button = QPushButton("janela")
+        self.rotate_window_button.clicked.connect(self.rotate_window)
         self.rotate_layout.addWidget(self.rotate_world_button, 1, 1)
         self.rotate_layout.addWidget(self.rotate_object_button, 1, 2)
         self.rotate_layout.addWidget(self.rotate_point_button, 1, 3)
         self.rotate_layout.addWidget(self.rotate_window_button, 2, 1, 1, 3)
-        self.rotate_menu = QGroupBox("Rotação")
         self.rotate_menu.setLayout(self.rotate_layout)
+        self.transform_layout.addWidget(self.rotate_menu)
+        self.transform_menu.setLayout(self.transform_layout)
 
-        self.left_transform_layout = QVBoxLayout()
-        self.left_transform_layout.addWidget(self.entry_transform_menu)
-        self.left_transform_layout.addWidget(self.left_schedule_translate_menu)
-        self.left_transform_layout.addWidget(self.rotate_menu)
-        self.left_transform_menu = QGroupBox("Transformações")
-        self.left_transform_menu.setLayout(self.left_transform_layout)
+        # Interface de arquivo
+        self.file_menu = QGroupBox("Arquivo")
+        self.file_layout = QGridLayout()
+        self.file_name_label = QLabel("Nome do Arquivo")
+        self.file_name_entry = QLineEdit()
+        self.file_save_button = QPushButton("Salvar")
+        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
+        self.file_insert_button = QPushButton("Inserir")
+        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
+        self.file_layout.addWidget(self.file_name_label, 1, 1, 1, 2)
+        self.file_layout.addWidget(self.file_name_entry, 2, 1, 1, 2)
+        self.file_layout.addWidget(self.file_save_button, 3, 1)
+        self.file_layout.addWidget(self.file_insert_button, 3, 2)
+        self.file_menu.setLayout(self.file_layout)
 
-        # Layout do menu de salvar em arquivo
-        self.left_file_layout = QVBoxLayout()
-        self.left_file_layout.addWidget(self.file_name_label)
-        self.left_file_layout.addWidget(self.file_name_entry)
-        self.left_file_layout.addWidget(self.file_save_button)
-        self.left_file_menu = QGroupBox("Salvar em Arquivo")
-        self.left_file_menu.setLayout(self.left_file_layout)
+        # Interface do menu
+        self.menu = QGroupBox("Menu")
+        self.menu_layout = QVBoxLayout()
+        self.menu_layout.addWidget(self.clipping_menu)
+        self.menu_layout.addWidget(self.objects_menu)
+        self.menu_layout.addWidget(self.zoom_menu)
+        self.menu_layout.addWidget(self.nav_menu)
+        self.menu_layout.addWidget(self.transform_menu)
+        self.menu_layout.addWidget(self.file_menu)
+        self.menu.setLayout(self.menu_layout)
 
-        # Layout do menu
-        # Contém lista de objetos e funções de zoom e navegação
-        self.left_menu_layout = QVBoxLayout()
-        self.left_menu_layout.addWidget(self.clipping_button_menu)
-        self.left_menu_layout.addWidget(self.left_objects_menu)
-        self.left_menu_layout.addWidget(self.left_zoom_menu)
-        self.left_menu_layout.addWidget(self.left_nav_menu)
-        self.left_menu_layout.addWidget(self.left_transform_menu)
-        self.left_menu_layout.addWidget(self.left_file_menu)
-        self.left_menu = QGroupBox()
-        self.left_menu.setLayout(self.left_menu_layout)
-
-        # Layout do viewport
-        # Contém a parte gráfica do viewport
+        # Interface do viewport
+        self.viewport_widget = QGroupBox("Viewport")
         self.viewport_layout = QVBoxLayout()
         self.viewport_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.viewport_layout.addWidget(self.viewport)
-        self.viewport_widget = QGroupBox("Viewport")
-        # self.main_widget.setFixedSize(QSize(810, 610))
         self.viewport_widget.setLayout(self.viewport_layout)
 
-        # Layout do log
-        # Contém a parte textual do log
+        # Interface de logs
+        self.log_widget = QGroupBox("Logs")
         self.log_layout = QVBoxLayout()
         self.log_layout.addWidget(self.logTextBox.widget)
-        self.log_widget = QGroupBox("Logs")
         self.log_widget.setLayout(self.log_layout)
 
-        # Log e Viewport
+        # Interface de logs e viewport
         self.main_layout = QVBoxLayout()
         self.main_layout.addWidget(self.viewport_widget, 5)
         self.main_layout.addWidget(self.log_widget, 1)
         self.main_widget = QGroupBox()
         self.main_widget.setLayout(self.main_layout)
 
-        # Janela principal
-        # Contém interface de usuario e parte de log
+        # Interface completa
         self.main_ui_layout = QHBoxLayout()
-        self.main_ui_layout.addWidget(self.left_menu, 1)
+        self.main_ui_layout.addWidget(self.menu, 1)
         self.main_ui_layout.addWidget(self.main_widget, 3)
         self.main_ui = QWidget()    
         self.main_ui.setLayout(self.main_ui_layout)

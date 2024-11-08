@@ -150,7 +150,7 @@ class Curva2D_fwd_diff(WireFrame):
             if len(ctrl_points)<4:
                 break
         for p in self.points:
-            print(p.get_str_point())
+            print(type(p),  p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
