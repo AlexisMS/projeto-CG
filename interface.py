@@ -21,7 +21,7 @@ class QTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 class NewObjectWindow(QWidget):
-    def __init__(self, normalized_matrix):
+    def __init__(self, normalized_matrix: numpy.ndarray):
         super().__init__()
         self.setWindowTitle("Criação de Objetos")
         self.layouts = QGridLayout()
@@ -123,7 +123,7 @@ class NewObjectWindow(QWidget):
         self.setLayout(self.layouts)
 
 class NewDialog(QWidget):
-    def __init__(self, n_points, normalized_matrix, type1, name):
+    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
         super().__init__()
         self.setWindowTitle("Inserção Pontos")
 
@@ -135,7 +135,7 @@ class NewDialog(QWidget):
         self.point_widget = []
 
 class New2DObjectDialog(NewDialog):
-    def __init__(self, n_points, normalized_matrix, type1, name):
+    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
         super().__init__(n_points, normalized_matrix, type1, name)
         self.points = []
 
@@ -164,7 +164,7 @@ class New2DObjectDialog(NewDialog):
         self.setLayout(self.layouts)
     
     @Slot()
-    def new_object(self, normalized_matrix, type1, name) -> None:
+    def new_object(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -195,7 +195,7 @@ class New2DObjectDialog(NewDialog):
         self.points.append(Point(x, y))
 
 class New3DObjectDialog(NewDialog):
-    def __init__(self, n_points, normalized_matrix, type1, name):
+    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
         super().__init__(n_points, normalized_matrix, type1, name)
         self.points = []
 
@@ -224,7 +224,7 @@ class New3DObjectDialog(NewDialog):
         self.setLayout(self.layouts)
     
     @Slot()
-    def new_object(self, normalized_matrix, type1, name) -> None:
+    def new_object(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -255,7 +255,7 @@ class New3DObjectDialog(NewDialog):
         self.points.append(Point(x, y))
 
 class New2DCurveDialog(NewDialog):
-    def __init__(self, n_points, normalized_matrix, type1, name):
+    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
         super().__init__(n_points, normalized_matrix, type1, name)
         self.ctrl_points = []
 
@@ -295,7 +295,7 @@ class New2DCurveDialog(NewDialog):
         self.ctrl_points.append(Point(x, y))
     
     @Slot()
-    def new_Curve(self, normalized_matrix, type1, name) -> None:
+    def new_Curve(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -323,7 +323,7 @@ class New2DCurveDialog(NewDialog):
             self.close()
 
 class SubWindows():
-    def open_new_object_window(self, normalized_matrix):
+    def open_new_object_window(self, normalized_matrix: numpy.ndarray) -> None:
         self.new_window = NewObjectWindow(normalized_matrix)
         self.new_window.show()
 class MainWindow(QMainWindow):
@@ -468,13 +468,23 @@ class MainWindow(QMainWindow):
         self.file_name_label = QLabel("Nome do Arquivo")
         self.file_name_entry = QLineEdit()
         self.file_save_button = QPushButton("Salvar")
-        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
-        self.file_insert_button = QPushButton("Inserir")
-        self.file_save_button.clicked.connect(lambda : self.save_file(self.file_name_entry.text(), self.windows.get_display_file().get_objects()))
+        self.file_save_button.clicked.connect(
+            lambda : self.save_file(
+                self.file_name_entry.text(),
+                self.windows.get_display_file().get_objects()
+                )
+            )
+        self.file_create_button = QPushButton("Criar")
+        self.file_create_button.clicked.connect(
+            lambda : self.open_file(
+                self.file_name_entry.text(),
+                self.windows.get_normalization_matrix()
+                )
+            )
         self.file_layout.addWidget(self.file_name_label, 1, 1, 1, 2)
         self.file_layout.addWidget(self.file_name_entry, 2, 1, 1, 2)
         self.file_layout.addWidget(self.file_save_button, 3, 1)
-        self.file_layout.addWidget(self.file_insert_button, 3, 2)
+        self.file_layout.addWidget(self.file_create_button, 3, 2)
         self.file_menu.setLayout(self.file_layout)
 
         # Interface do menu
@@ -524,8 +534,7 @@ class MainWindow(QMainWindow):
         logging.info('programa iniciado')
 
     # Desenha as linhas x e y
-    def draw_default_forms(self):
-
+    def draw_default_forms(self) -> None:
         line1 = WireFrame("line1",
                           [Point(-10000, self.windows.get_center().get_y()),
                            Point(10000, self.windows.get_center().get_y())])
@@ -604,7 +613,7 @@ class MainWindow(QMainWindow):
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
     
     # Desenha um objeto
-    def draw(self, obj: WireFrame):
+    def draw(self, obj: WireFrame) -> None:
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
         if obj.get_type() == '1':
@@ -663,7 +672,7 @@ class MainWindow(QMainWindow):
                     first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
     
     # Desenha um objeto
-    def draw_object(self, obj: WireFrame):
+    def draw_object(self, obj: WireFrame) -> None:
         self.draw(obj)
         self.windows.get_display_file().add_object(obj)
 
@@ -686,7 +695,7 @@ class MainWindow(QMainWindow):
         return obj
     
     # Redesenha todos os objetos
-    def redraw_objects(self):
+    def redraw_objects(self) -> None:
         self.scene.clear()
         self.windows.update_normalization_matrix()
         self.draw_default_forms()
@@ -697,7 +706,7 @@ class MainWindow(QMainWindow):
             self.draw(obj)
 
     # Translada um objeto
-    def translate(self):
+    def translate(self) -> None:
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
         else:
@@ -711,7 +720,7 @@ class MainWindow(QMainWindow):
                          "transladado em (" +str(translate_point.get_x())+","+str(translate_point.get_y())+")")
 
     # Escalona um objeto
-    def schedule(self):
+    def schedule(self) -> None:
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
         else:
@@ -726,7 +735,7 @@ class MainWindow(QMainWindow):
                          "escalonado em (" +str(point.get_x())+","+str(point.get_y())+")")
 
     # Rotaciona um objeto pelo seu centro
-    def rotate_object(self):
+    def rotate_object(self) -> None:
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
         else:
@@ -741,7 +750,7 @@ class MainWindow(QMainWindow):
                          "rotacionado a partir do centro do objeto")
 
     # Rotaciona um objeto pelo centro do mundo
-    def rotate_world(self):
+    def rotate_world(self) -> None:
         if self.object_names.currentItem() == None:
             logging.info("selecione um objeto")
         else:
@@ -756,7 +765,7 @@ class MainWindow(QMainWindow):
                          "rotacionado a partir do centro do mundo")
 
     # Rotaciona um objeto pelo ponto dado
-    def rotate_point(self):
+    def rotate_point(self) -> None:
         pivot_x = int(self.point_x_entry.text())
         pivot_y = int(self.point_y_entry.text())
         pivot = Point(pivot_x,pivot_y) 
@@ -774,7 +783,7 @@ class MainWindow(QMainWindow):
                          "rotacionado a partir do ponto (" +str(pivot_x)+","+str(pivot_y)+")")
 
     # Rotaciona a janela
-    def rotate_window(self):
+    def rotate_window(self) -> None:
         angle = float(self.angle_entry.text())
         self.windows.set_angle(angle)
         self.windows.update_normalization_matrix()
@@ -782,11 +791,23 @@ class MainWindow(QMainWindow):
         logging.info('window rotacionada')
 
     # Salva o arquivo de objetos
-    def save_file(self, file_name: str, objects: list[WireFrame]):
+    def save_file(self, file_name: str, objects) -> None:
         handler = ObjHandler()
         handler.save_file(file_name, objects)
         logging.info("arquivo " + file_name + " criado")
-    
+
+    # Abre o arquivo
+    def open_file(self, file_name, normalized_matrix: numpy.ndarray) -> None:
+        handler = ObjHandler()
+        new_objects = handler.open_file(file_name)
+        for obj in new_objects:
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
