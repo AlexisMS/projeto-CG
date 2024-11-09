@@ -19,6 +19,21 @@ class Point():
     
     def get_str_point(self) -> str:
         return "("+str(self.get_x())+","+str(self.get_y())+")"
+    
+class Point3D(Point):
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
+    
+    def get_z(self) -> float:
+        return self.z
+    
+    def set_z(self, z) -> None:
+        self.z = z
+    
+    def get_str_point(self) -> str:
+        return "("+str(self.get_x())+","+str(self.get_y())+","+str(self.get_z())+")"
 
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
@@ -101,6 +116,10 @@ class WireFrame():
             point.set_y(point_matrix[1])
         self.set_center()
 
+class WireFrame3D():
+    def __init__(self):
+        pass
+
 class Segment_Curva2D_bezier(WireFrame):
     def __init__(self, ctrl_points: list[Point], steps: int):
         self.type = "curve"
@@ -131,6 +150,8 @@ class Curva2D_bezier(WireFrame):
             ctrl_points = ctrl_points[3:]
             if len(ctrl_points)<4:
                 break
+        for p in self.points:
+            print(type(p), p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
@@ -147,6 +168,8 @@ class Curva2D_fwd_diff(WireFrame):
             ctrl_points = ctrl_points[1:]
             if len(ctrl_points)<4:
                 break
+        for p in self.points:
+            print(p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
