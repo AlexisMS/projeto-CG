@@ -20,236 +20,10 @@ class QTextEditLogger(logging.Handler):
         msg = self.format(record)
         self.widget.appendPlainText(msg)
 
-class NewDialog(QWidget):
-    def __init__(self, n_points:int, normalized_matrix:numpy.ndarray):
-        super().__init__()
-
-        self.ctrl_points = []
-        self.points = []
-        self.x_label = []
-        self.x_coord = []
-        self.y_label = []
-        self.y_coord = []
-        self.point_layout = []
-        self.point_widget = []
-
-    @Slot()
-    def new_Point(self, n: int) -> None:
-        x = int(self.x_coord[n].text())
-        y = int(self.y_coord[n].text())
-        self.points.append(Point(x, y))
-    
-    @Slot()
-    def new_object(self, n_points: int, normalized_matrix: numpy.ndarray) -> None:
-        # Checa se há valor vazio em alguma coordenada submetida
-        empty_coord = False
-        for i in range(len(self.x_coord)):
-            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
-                empty_coord = True
-                break
-        # Cancela criação de objetos se não cumprir algum requisito
-        if self.name_entry.text() == "" or empty_coord:
-            logging.info("wireframe não criado: campos precisam ser preenchidos")
-            self.close()
-        else:
-            for n in range(n_points):
-                self.new_Point(n)
-            obj = WireFrame(self.name_entry.text().upper(), self.points)
-            obj.apply_normalized(normalized_matrix)
-            screen.draw_object(obj)
-            screen.update_objects_names()
-            message = ("wireframe "+obj.get_name()+"<"
-                       +obj.get_type()+"> criado em "
-                       +obj.get_str_points())
-            logging.info(message)
-            self.close()
-
-    # @Slot()
-    # def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
-    #     handler = ObjHandler()
-    #     new_objects = handler.open_file(file_name)
-    #     for obj in new_objects:
-    #         obj.apply_normalized(normalized_matrix)
-    #         screen.draw_object(obj)
-    #         screen.update_objects_names()
-    #         message = ("wireframe "+obj.get_name()+"<"
-    #                    +obj.get_type()+"> criado em "
-    #                    +obj.get_str_points())
-    #         logging.info(message)
-    #     self.close()
-
-class New2DObjectDialog(NewDialog):
-    def __init__(self, n_points, normalized_matrix):
-        super().__init__(n_points, normalized_matrix)
-
-        for n in range(n_points): 
-            self.x_label.append(QLabel("X"+str(n)))
-            self.x_coord.append(QLineEdit())
-            self.y_label.append(QLabel("Y"+str(n)))
-            self.y_coord.append(QLineEdit())
-        for n in range(n_points):
-            self.point_layout.append(QHBoxLayout())
-            self.point_layout[n].addWidget(self.x_label[n])
-            self.point_layout[n].addWidget(self.x_coord[n])
-            self.point_layout[n].addWidget(self.y_label[n])
-            self.point_layout[n].addWidget(self.y_coord[n])
-            self.point_widget.append(QWidget())
-            self.point_widget[n].setLayout(self.point_layout[n])
-        self.create_object_button = QPushButton("Criar objeto")
-        self.create_object_button.clicked.connect(lambda : self.new_object(n_points, normalized_matrix))
-
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.name_widget)
-        if n_points >= 3:
-            self.type_label = QLabel("Tipo do Objeto")
-            self.type_button_1 = QRadioButton("Arame")
-            self.type_button_2 = QRadioButton("Preenchido")
-            self.type_button_1.setChecked(True)
-            self.type_button_layout = QHBoxLayout()
-            self.type_button_layout.addWidget(self.type_label, 2)
-            self.type_button_layout.addWidget(self.type_button_1, 1)
-            self.type_button_layout.addWidget(self.type_button_2, 1)
-            self.type_button_widget = QWidget()
-            self.type_button_widget.setLayout(self.type_button_layout)
-            self.layout.addWidget(self.type_button_widget)
-        for n in range(n_points):
-            self.layout.addWidget(self.point_widget[n])
-        self.layout.addWidget(self.create_object_button)
-        self.setLayout(self.layout)
-class New2DCurveDialog(QWidget):
-    def __init__(self, point_amount: int, normalized_matrix: numpy.ndarray):
-        super().__init__()
-        self.ctrl_points = []
-        self.x_label = []
-        self.x_coord = []
-        self.y_label = []
-        self.y_coord = []
-
-        self.point_layout = []
-        self.point_widget = []
-
-        self.name_label = QLabel("Nome da Curva")
-        self.name_entry = QLineEdit()
-        self.name_layout = QHBoxLayout()
-        self.name_layout.addWidget(self.name_label)
-        self.name_layout.addWidget(self.name_entry)
-        self.name_widget = QWidget()
-        self.name_widget.setLayout(self.name_layout)
-
-        self.buttonCreateObject = QPushButton("Criar Curva")
-        self.buttonCreateObject.clicked.connect(lambda : self.new_Curve(point_amount, normalized_matrix))
-        self.file_label = QLabel("Nome do arquivo")
-        self.file_name = QLineEdit()
-        self.file_open_button = QPushButton("Ler arquivo")
-        self.file_open_button.clicked.connect(lambda: self.open_file(self.file_name.text(), normalized_matrix))
-        self.files_layout = QVBoxLayout()
-
-        self.type_label = QLabel("Tipo da Curva")
-        self.type_button_1 = QRadioButton("Bezier")
-        self.type_button_2 = QRadioButton("BSpline")
-        self.type_button_1.setChecked(True)
-        self.type_button_layout = QHBoxLayout()
-        self.type_button_layout.addWidget(self.type_label, 2)
-        self.type_button_layout.addWidget(self.type_button_1, 1)
-        self.type_button_layout.addWidget(self.type_button_2, 1)
-        self.type_button_widget = QWidget()
-        self.type_button_widget.setLayout(self.type_button_layout)
-
-        self.add_points = QPushButton("Adicionar pontos")
-        self.add_points.clicked.connect(lambda : self.add_Points(point_amount))
-
-        # Configura o layout
-        self.layouts = QVBoxLayout()
-        self.layouts.addWidget(self.name_widget)
-        self.layouts.addWidget(self.type_button_widget)
-        self.layouts.addWidget(self.add_points)
-
-        self.setLayout(self.layouts)
-        self.setWindowTitle("Nova Curva")
-    
-    
-    @Slot()
-    def add_Points(self, point_amount):
-        if self.type_button_1.isChecked():
-            point_amount = point_amount*4 - (point_amount-1)
-        else:
-            point_amount += 3
-        for n in range(point_amount):
-            self.x_label.append(QLabel("X"+str(n)))
-            self.x_coord.append(QLineEdit())
-            self.y_label.append(QLabel("Y"+str(n)))
-            self.y_coord.append(QLineEdit())
-        
-        for n in range(point_amount):
-            self.point_layout.append(QHBoxLayout())
-            self.point_layout[n].addWidget(self.x_label[n])
-            self.point_layout[n].addWidget(self.x_coord[n])
-            self.point_layout[n].addWidget(self.y_label[n])
-            self.point_layout[n].addWidget(self.y_coord[n])
-            self.point_widget.append(QWidget())
-            self.point_widget[n].setLayout(self.point_layout[n])
-
-        for n in range(point_amount):
-            self.layouts.addWidget(self.point_widget[n])
-            
-        self.layouts.addWidget(self.buttonCreateObject)
-        self.layouts.addWidget(self.file_label)
-        self.layouts.addWidget(self.file_name)
-        self.layouts.addWidget(self.file_open_button)
-        self.setLayout(self.layouts)
-
-    @Slot()
-    def new_Point(self, n: int) -> None:
-        x = int(self.x_coord[n].text())
-        y = int(self.y_coord[n].text())
-        print(x, y)
-        self.ctrl_points.append(Point(x, y))
-    
-    @Slot()
-    def new_Curve(self, point_ammount: int, normalized_matrix: numpy.ndarray) -> None:
-        # Checa se há valor vazio em alguma coordenada submetida
-        empty_coord = False
-        for i in range(len(self.x_coord)):
-            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
-                empty_coord = True
-                break
-        # Cancela criação de objetos se não cumprir algum requisito
-        if self.name_entry.text() == "" or empty_coord:
-            logging.info("wireframe não criado: campos precisam ser preenchidos")
-            self.close()
-        else:
-            for n in range(len(self.x_coord)):
-                self.new_Point(n)
-            if self.type_button_1.isChecked():
-                obj = Curva2D_bezier(self.name_entry.text().upper(), self.ctrl_points, 20)
-            else:
-                obj = Curva2D_fwd_diff(self.name_entry.text().upper(), self.ctrl_points, 0.1)                
-            obj.apply_normalized(normalized_matrix)
-            screen.draw_object(obj)
-            screen.update_objects_names()
-            message = ("wireframe "+obj.get_name()+"<"
-                       +obj.get_type()+"> criado em "
-                       +obj.get_str_points())
-            logging.info(message)
-            self.close()
-
-    @Slot()
-    def open_file(self, file_name: str, normalized_matrix: numpy.ndarray) -> None:
-        handler = ObjHandler()
-        new_objects = handler.open_file(file_name)
-        for obj in new_objects:
-            obj.apply_normalized(normalized_matrix)
-            screen.draw_object(obj)
-            screen.update_objects_names()
-            message = ("wireframe "+obj.get_name()+"<"
-                       +obj.get_type()+"> criado em "
-                       +obj.get_str_points())
-            logging.info(message)
-        self.close()
-
 class NewObjectWindow(QWidget):
-    def __init__(self):
+    def __init__(self, normalized_matrix):
         super().__init__()
+        self.setWindowTitle("Criação de Objetos")
         self.layouts = QGridLayout()
         
         # Informações gerais
@@ -265,19 +39,26 @@ class NewObjectWindow(QWidget):
         self.wireframe2D = QGroupBox("Arames 2D")
         self.wireframe2D_layout = QGridLayout()
         self.type_label_wireframe2D = QLabel("Tipo Objeto")
-        self.type_button_1_wireframe2D = QRadioButton("Arame")
-        self.type_button_2_wireframe2D = QRadioButton("Preenchido")
-        self.n_points2D_label = QLabel("Número de pontos")
-        self.n_points2D = QSpinBox()
-        self.n_points2D.setMinimum(1)
-        self.type_button_1_wireframe2D.setChecked(True)
+        self.type_button1_wireframe2D = QRadioButton("Arame")
+        self.type_button2_wireframe2D = QRadioButton("Preenchido")
+        self.type_button1_wireframe2D.setChecked(True)
+        self.wireframe_points2D_label = QLabel("Número de pontos")
+        self.wireframe_points2D = QSpinBox()
+        self.wireframe_points2D.setMinimum(1)
         self.create_button_wireframe2D = QPushButton("Criar Objeto 2D")
-        self.create_button_wireframe2D.clicked.connect(lambda: New2DObjectDialog().show())
+        self.create_button_wireframe2D.clicked.connect(
+            lambda: New2DObjectDialog(
+                self.wireframe_points2D.value(),
+                normalized_matrix,
+                self.type_button1_wireframe2D.isChecked(),
+                self.name_entry.text().upper()
+                ).show()
+            )
         self.wireframe2D_layout.addWidget(self.type_label_wireframe2D, 1, 1)
-        self.wireframe2D_layout.addWidget(self.type_button_1_wireframe2D, 1, 2)
-        self.wireframe2D_layout.addWidget(self.type_button_2_wireframe2D, 2, 2)
-        self.wireframe2D_layout.addWidget(self.n_points2D_label, 3, 1)
-        self.wireframe2D_layout.addWidget(self.n_points2D, 3, 2)
+        self.wireframe2D_layout.addWidget(self.type_button1_wireframe2D, 1, 2)
+        self.wireframe2D_layout.addWidget(self.type_button2_wireframe2D, 2, 2)
+        self.wireframe2D_layout.addWidget(self.wireframe_points2D_label, 3, 1)
+        self.wireframe2D_layout.addWidget(self.wireframe_points2D, 3, 2)
         self.wireframe2D_layout.addWidget(self.create_button_wireframe2D, 4, 1, 1, 2)
         self.wireframe2D.setLayout(self.wireframe2D_layout)
 
@@ -285,19 +66,26 @@ class NewObjectWindow(QWidget):
         self.wireframe3D = QGroupBox("Arames 3D")
         self.wireframe3D_layout = QGridLayout()
         self.type_label_wireframe3D = QLabel("Tipo Objeto")
-        self.type_button_1_wireframe3D = QRadioButton("Arame")
-        self.type_button_2_wireframe3D = QRadioButton("Preenchido")
-        self.n_points3D_label = QLabel("Número de pontos")
-        self.n_points3D = QSpinBox()
-        self.n_points3D.setMinimum(1)
-        self.type_button_1_wireframe3D.setChecked(True)
+        self.type_button1_wireframe3D = QRadioButton("Arame")
+        self.type_button2_wireframe3D = QRadioButton("Preenchido")
+        self.type_button1_wireframe3D.setChecked(True)
+        self.wireframe_points3D_label = QLabel("Número de pontos")
+        self.wireframe_points3D = QSpinBox()
+        self.wireframe_points3D.setMinimum(1)
         self.create_button_wireframe3D = QPushButton("Criar Objeto 3D")
-        self.create_button_wireframe3D.clicked.connect(lambda: New2DObjectDialog().show())
+        self.create_button_wireframe3D.clicked.connect(
+            lambda: New3DObjectDialog(
+                self.wireframe_points3D.value(),
+                normalized_matrix,
+                self.type_button1_wireframe3D.isChecked(),
+                self.name_entry.text().upper()
+                ).show()
+            )
         self.wireframe3D_layout.addWidget(self.type_label_wireframe3D, 1, 1)
-        self.wireframe3D_layout.addWidget(self.type_button_1_wireframe3D, 1, 2)
-        self.wireframe3D_layout.addWidget(self.type_button_2_wireframe3D, 2, 2)
-        self.wireframe3D_layout.addWidget(self.n_points3D_label, 3, 1)
-        self.wireframe3D_layout.addWidget(self.n_points3D, 3, 2)
+        self.wireframe3D_layout.addWidget(self.type_button1_wireframe3D, 1, 2)
+        self.wireframe3D_layout.addWidget(self.type_button2_wireframe3D, 2, 2)
+        self.wireframe3D_layout.addWidget(self.wireframe_points3D_label, 3, 1)
+        self.wireframe3D_layout.addWidget(self.wireframe_points3D, 3, 2)
         self.wireframe3D_layout.addWidget(self.create_button_wireframe3D, 4, 1, 1, 2)
         self.wireframe3D.setLayout(self.wireframe3D_layout)
 
@@ -308,12 +96,23 @@ class NewObjectWindow(QWidget):
         self.type_button1_curve2D = QRadioButton("Bezier")
         self.type_button2_curve2D = QRadioButton("BSpline")
         self.type_button1_curve2D.setChecked(True)
+        self.curve_points2D_label = QLabel("Número de pontos")
+        self.curve_points2D = QSpinBox()
+        self.curve_points2D.setMinimum(1)
         self.create_button_curve2D = QPushButton("Criar Curva 2D")
-        self.create_button_curve2D.clicked.connect(lambda: New2DCurveDialog(self.n_points.value()).show())
+        self.create_button_curve2D.clicked.connect(
+            lambda: New2DCurveDialog(
+                self.curve_points2D.value(),
+                normalized_matrix,
+                self.type_button1_curve2D.isChecked(),
+                self.name_entry.text().upper()
+                ).show())
         self.curve2D_layout.addWidget(self.type_label_curve2D, 1, 1)
         self.curve2D_layout.addWidget(self.type_button1_curve2D, 1, 2)
         self.curve2D_layout.addWidget(self.type_button2_curve2D, 2, 2)
-        self.curve2D_layout.addWidget(self.create_button_curve2D, 3, 1, 1, 2)
+        self.curve2D_layout.addWidget(self.curve_points2D_label, 3, 1)
+        self.curve2D_layout.addWidget(self.curve_points2D, 3, 2)
+        self.curve2D_layout.addWidget(self.create_button_curve2D, 4, 1, 1, 2)
         self.curve2D.setLayout(self.curve2D_layout)
         
         self.layouts.addWidget(self.general_data, 1, 1, 1, 3)
@@ -323,9 +122,209 @@ class NewObjectWindow(QWidget):
 
         self.setLayout(self.layouts)
 
+class NewDialog(QWidget):
+    def __init__(self, n_points, normalized_matrix, type1, name):
+        super().__init__()
+        self.setWindowTitle("Inserção Pontos")
+
+        self.x_label = []
+        self.x_coord = []
+        self.y_label = []
+        self.y_coord = []
+        self.point_layout = []
+        self.point_widget = []
+
+class New2DObjectDialog(NewDialog):
+    def __init__(self, n_points, normalized_matrix, type1, name):
+        super().__init__(n_points, normalized_matrix, type1, name)
+        self.points = []
+
+        for n in range(n_points): 
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+        for n in range(n_points):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+        self.create_object_button = QPushButton("Criar objeto 2D")
+        self.create_object_button.clicked.connect(
+            lambda : self.new_object(normalized_matrix, type1, name)
+            )
+
+        self.layouts = QVBoxLayout()
+        for n in range(n_points):
+            self.layouts.addWidget(self.point_widget[n])
+        self.layouts.addWidget(self.create_object_button)
+        self.setLayout(self.layouts)
+    
+    @Slot()
+    def new_object(self, normalized_matrix, type1, name) -> None:
+        # Checa se há valor vazio em alguma coordenada submetida
+        empty_coord = False
+        for i in range(len(self.x_coord)):
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+                empty_coord = True
+                break
+        # Cancela criação de objetos se não cumprir algum requisito
+        if name == "" or empty_coord:
+            logging.info("wireframe 2D não criado: nome e pontos precisam ser preenchidos")
+            self.close()
+        else:
+            for n in range(len(self.x_coord)):
+                self.new_Point(n)
+            obj = WireFrame(name, self.points)
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+            self.close()
+    
+    @Slot()
+    def new_Point(self, n: int) -> None:
+        x = int(self.x_coord[n].text())
+        y = int(self.y_coord[n].text())
+        self.points.append(Point(x, y))
+
+class New3DObjectDialog(NewDialog):
+    def __init__(self, n_points, normalized_matrix, type1, name):
+        super().__init__(n_points, normalized_matrix, type1, name)
+        self.points = []
+
+        for n in range(n_points): 
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+        for n in range(n_points):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+        self.create_object_button = QPushButton("Criar objeto 3D")
+        self.create_object_button.clicked.connect(
+            lambda : self.new_object(normalized_matrix, type1, name)
+            )
+
+        self.layouts = QVBoxLayout()
+        for n in range(n_points):
+            self.layouts.addWidget(self.point_widget[n])
+        self.layouts.addWidget(self.create_object_button)
+        self.setLayout(self.layouts)
+    
+    @Slot()
+    def new_object(self, normalized_matrix, type1, name) -> None:
+        # Checa se há valor vazio em alguma coordenada submetida
+        empty_coord = False
+        for i in range(len(self.x_coord)):
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+                empty_coord = True
+                break
+        # Cancela criação de objetos se não cumprir algum requisito
+        if name == "" or empty_coord:
+            logging.info("wireframe 3D não criado: nome e pontos precisam ser preenchidos")
+            self.close()
+        else:
+            for n in range(len(self.x_coord)):
+                self.new_Point(n)
+            obj = WireFrame(name, self.points)
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+            self.close()
+    
+    @Slot()
+    def new_Point(self, n: int) -> None:
+        x = int(self.x_coord[n].text())
+        y = int(self.y_coord[n].text())
+        self.points.append(Point(x, y))
+
+class New2DCurveDialog(NewDialog):
+    def __init__(self, n_points, normalized_matrix, type1, name):
+        super().__init__(n_points, normalized_matrix, type1, name)
+        self.ctrl_points = []
+
+        if type1:
+            n_points = n_points*4 - (n_points-1)
+        else:
+            n_points += 3
+        
+        for n in range(n_points):
+            self.x_label.append(QLabel("X"+str(n)))
+            self.x_coord.append(QLineEdit())
+            self.y_label.append(QLabel("Y"+str(n)))
+            self.y_coord.append(QLineEdit())
+        for n in range(n_points):
+            self.point_layout.append(QHBoxLayout())
+            self.point_layout[n].addWidget(self.x_label[n])
+            self.point_layout[n].addWidget(self.x_coord[n])
+            self.point_layout[n].addWidget(self.y_label[n])
+            self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_widget.append(QWidget())
+            self.point_widget[n].setLayout(self.point_layout[n])
+        self.create_object_button = QPushButton("Criar Curva 2D")
+        self.create_object_button.clicked.connect(
+            lambda : self.new_Curve(normalized_matrix, type1, name)
+            )
+        
+        self.layouts = QVBoxLayout()
+        for n in range(n_points):
+            self.layouts.addWidget(self.point_widget[n])
+        self.layouts.addWidget(self.create_object_button)
+        self.setLayout(self.layouts)
+
+    @Slot()
+    def new_Point(self, n: int) -> None:
+        x = int(self.x_coord[n].text())
+        y = int(self.y_coord[n].text())
+        self.ctrl_points.append(Point(x, y))
+    
+    @Slot()
+    def new_Curve(self, normalized_matrix, type1, name) -> None:
+        # Checa se há valor vazio em alguma coordenada submetida
+        empty_coord = False
+        for i in range(len(self.x_coord)):
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+                empty_coord = True
+                break
+        # Cancela criação de objetos se não cumprir algum requisito
+        if name == "" or empty_coord:
+            logging.info("wireframe não criado: nome e pontos precisam ser preenchidos")
+            self.close()
+        else:
+            for n in range(len(self.x_coord)):
+                self.new_Point(n)
+            if type1:
+                obj = Curva2D_bezier(name, self.ctrl_points, 20)
+            else:
+                obj = Curva2D_fwd_diff(name, self.ctrl_points, 0.1)                
+            obj.apply_normalized(normalized_matrix)
+            screen.draw_object(obj)
+            screen.update_objects_names()
+            message = ("wireframe "+obj.get_name()+"<"
+                       +obj.get_type()+"> criado em "
+                       +obj.get_str_points())
+            logging.info(message)
+            self.close()
+
 class SubWindows():
-    def open_new_object_window(self):
-        self.new_window = NewObjectWindow()
+    def open_new_object_window(self, normalized_matrix):
+        self.new_window = NewObjectWindow(normalized_matrix)
         self.new_window.show()
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -366,7 +365,9 @@ class MainWindow(QMainWindow):
         self.objects_layout = QVBoxLayout()
         self.object_names = QListWidget()
         self.create_object_button = QPushButton("Novo Objeto")
-        self.create_object_button.clicked.connect(self.subWindows.open_new_object_window)
+        self.create_object_button.clicked.connect(
+            lambda: self.subWindows.open_new_object_window(self.windows.get_normalization_matrix())
+            )
         self.objects_layout.addWidget(self.create_object_button)
         self.objects_layout.addWidget(self.object_names)
         self.objects_menu.setLayout(self.objects_layout)

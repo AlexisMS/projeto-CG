@@ -131,8 +131,6 @@ class Curva2D_bezier(WireFrame):
             ctrl_points = ctrl_points[3:]
             if len(ctrl_points)<4:
                 break
-        for p in self.points:
-            print(type(p), p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
@@ -149,8 +147,6 @@ class Curva2D_fwd_diff(WireFrame):
             ctrl_points = ctrl_points[1:]
             if len(ctrl_points)<4:
                 break
-        for p in self.points:
-            print(type(p),  p.get_str_point())
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
