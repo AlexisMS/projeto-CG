@@ -123,26 +123,17 @@ class WireFrame():
         self.set_center()
 
 class WireFrame3D(WireFrame):
-    def __init__(self, name: str, points: list[Point3D]):
+    def __init__(self, name: str, points: list[Point3D], edges: list[(Point3D, Point3D)]):
         self.name = name
         self.type = str(len(points))
         self.points = points
+        self.edges = edges
         self.normalized_points = []
         self.transform_matrix = numpy.identity(3) #provavel que vai ter que mudar
         self.center = self.set_center()
     
-    def set_connections(self, target_point: Point3D, connected_points: list[Point3D]):
-        if (target_point in self.points):
-            valid = True
-            for p in connected_points:
-                if (p not in self.points):
-                    valid = False
-            if valid:
-                target_point.set_connections(connected_points)
-
-    def get_connections(self, point: Point3D):
-        if (point in self.points):
-            return point.get_connections()
+    def get_edges(self):
+        return self.edges
 
     def apply_normalized(self, normalized_matrix) -> None:
         pass # TODO
