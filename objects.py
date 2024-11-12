@@ -34,6 +34,12 @@ class Point3D(Point):
     
     def get_str_point(self) -> str:
         return "("+str(self.get_x())+","+str(self.get_y())+","+str(self.get_z())+")"
+    
+    def set_connections(self, connections): # Point3D pode ter uma lista de outros Point3D?
+        self.connections = connections
+
+    def get_connections(self):
+        return self.connections
 
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
@@ -116,9 +122,53 @@ class WireFrame():
             point.set_y(point_matrix[1])
         self.set_center()
 
-class WireFrame3D():
-    def __init__(self):
-        pass
+class WireFrame3D(WireFrame):
+    def __init__(self, name: str, points: list[Point3D]):
+        self.name = name
+        self.type = str(len(points))
+        self.points = points
+        self.normalized_points = []
+        self.transform_matrix = numpy.identity(3) #provavel que vai ter que mudar
+        self.center = self.set_center()
+    
+    def set_connections(self, target_point: Point3D, connected_points: list[Point3D]):
+        if (target_point in self.points):
+            valid = True
+            for p in connected_points:
+                if (p not in self.points):
+                    valid = False
+            if valid:
+                target_point.set_connections(connected_points)
+
+    def get_connections(self, point: Point3D):
+        if (point in self.points):
+            return point.get_connections()
+
+    def apply_normalized(self, normalized_matrix) -> None:
+        pass # TODO
+
+    def get_str_points(self) -> str:
+        str_point = ""
+        for p in self.points:
+            str_point += "("+str(p.get_x())+","+str(p.get_y())+","+str(p.get_z())+")"
+        return str_point
+    
+    def set_center(self) -> Point:
+        xsum = 0
+        ysum = 0
+        zsum = 0
+        for point in self.points:
+            xsum = xsum + point.get_x()
+            ysum = ysum + point.get_y()
+            zsum = zsum + point.get_z
+        x = xsum/len(self.points)
+        y = ysum/len(self.points)
+        z = zsum/len(self.points)
+        self.center = Point3D(x, y, z)
+        return Point(x, y, z)
+    
+    def apply_transform(self) -> None:
+        pass # TODO
 
 class Segment_Curva2D_bezier(WireFrame):
     def __init__(self, ctrl_points: list[Point], steps: int):
