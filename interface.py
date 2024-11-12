@@ -198,18 +198,24 @@ class New3DObjectDialog(NewDialog):
     def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
         super().__init__(n_points, normalized_matrix, type1, name)
         self.points = []
+        self.z_label = []
+        self.z_coord = []
 
         for n in range(n_points): 
             self.x_label.append(QLabel("X"+str(n)))
             self.x_coord.append(QLineEdit())
             self.y_label.append(QLabel("Y"+str(n)))
             self.y_coord.append(QLineEdit())
+            self.z_label.append(QLabel("Z"+str(n)))
+            self.z_coord.append(QLineEdit())
         for n in range(n_points):
             self.point_layout.append(QHBoxLayout())
             self.point_layout[n].addWidget(self.x_label[n])
             self.point_layout[n].addWidget(self.x_coord[n])
             self.point_layout[n].addWidget(self.y_label[n])
             self.point_layout[n].addWidget(self.y_coord[n])
+            self.point_layout[n].addWidget(self.z_label[n])
+            self.point_layout[n].addWidget(self.z_coord[n])
             self.point_widget.append(QWidget())
             self.point_widget[n].setLayout(self.point_layout[n])
         self.create_object_button = QPushButton("Criar objeto 3D")
