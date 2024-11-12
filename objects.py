@@ -34,12 +34,6 @@ class Point3D(Point):
     
     def get_str_point(self) -> str:
         return "("+str(self.get_x())+","+str(self.get_y())+","+str(self.get_z())+")"
-    
-    def set_connections(self, connections): # Point3D pode ter uma lista de outros Point3D?
-        self.connections = connections
-
-    def get_connections(self):
-        return self.connections
 
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
@@ -136,7 +130,11 @@ class WireFrame3D(WireFrame):
         return self.edges
 
     def apply_normalized(self, normalized_matrix) -> None:
-        pass # TODO
+        for point in self.points:
+            point_matrix = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
+            point_matrix = point_matrix.dot(normalized_matrix)
+            normalized_point = Point(point_matrix[0], point_matrix[1], point_matrix[2])
+            self.normalized_points.append(normalized_point)
 
     def get_str_points(self) -> str:
         str_point = ""
