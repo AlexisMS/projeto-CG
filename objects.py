@@ -129,7 +129,7 @@ class WireFrame3D(WireFrame):
         self.points = points
         self.edges = edges
         self.normalized_points = []
-        self.transform_matrix = numpy.identity(3) #provavel que vai ter que mudar
+        self.transform_matrix = numpy.identity(4)
         self.center = self.set_center()
     
     def get_edges(self):
@@ -158,8 +158,17 @@ class WireFrame3D(WireFrame):
         self.center = Point3D(x, y, z)
         return Point(x, y, z)
     
-    def apply_transform(self) -> None:
-        pass # TODO
+    def apply_transform(self) -> None: # lembrete de rodar reset_transform() depois
+        for point in self.points:
+            point_matrix = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
+            point_matrix = point_matrix.dot(self.transform_matrix)
+            point.set_x(point_matrix[0])
+            point.set_y(point_matrix[1])
+            point.set_z(point_matrix[2])
+        self.set_center()
+
+    def reset_transform(self) -> None:
+        self.transform_matrix = numpy.identity(4)
 
 class Segment_Curva2D_bezier(WireFrame):
     def __init__(self, ctrl_points: list[Point], steps: int):
