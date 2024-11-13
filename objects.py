@@ -38,7 +38,7 @@ class Point3D(Point):
 class WireFrame():
     def __init__(self, name: str, points: list[Point]):
         self.name = name
-        self.type = str(len(points))
+        self.type = "WF2D-"+str(len(points))
         self.points = points
         self.normalized_points = []
         self.transform_matrix = numpy.identity(3)
@@ -65,7 +65,7 @@ class WireFrame():
         return self.name
     
     # Retorna o tipo
-    def get_type(self) -> int:
+    def get_type(self) -> str:
         return self.type
 
     # Retorna os pontos
@@ -119,7 +119,7 @@ class WireFrame():
 class WireFrame3D(WireFrame):
     def __init__(self, name: str, points: list[Point3D], edges: list[(Point3D, Point3D)]):
         self.name = name
-        self.type = str(len(points))
+        self.type = "WF3D-"+str(len(points))
         self.points = points
         self.edges = edges
         self.normalized_points = []
@@ -170,7 +170,7 @@ class WireFrame3D(WireFrame):
 
 class Segment_Curva2D_bezier(WireFrame):
     def __init__(self, ctrl_points: list[Point], steps: int):
-        self.type = "curve"
+        self.type = "C2D-"+str(len(ctrl_points))
         self.ctrl_points = ctrl_points
         self.mb = numpy.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]]) # definição de bezier
         self.gbx = numpy.array([[ctrl_points[0].get_x()], [ctrl_points[1].get_x()], [ctrl_points[2].get_x()], [ctrl_points[3].get_x()]])
@@ -191,7 +191,7 @@ class Curva2D_bezier(WireFrame):
         self.ctrl_points = ctrl_points
         self.points = []
         self.normalized_points = []
-        self.type = "curve"
+        self.type = "C2D-"+str(len(ctrl_points))
         while(1):
             curve_segment = Segment_Curva2D_bezier([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3]], steps)
             self.points = self.points + curve_segment.get_points()
@@ -209,7 +209,7 @@ class Curva2D_fwd_diff(WireFrame):
         self.ctrl_points = ctrl_points
         self.points = []
         self.normalized_points = []
-        self.type = "curve"
+        self.type = "C2D-"+str(len(ctrl_points))
         while(1):
             curve_segment = Segment_Curva2D_fwd_diff([ctrl_points[0], ctrl_points[1], ctrl_points[2], ctrl_points[3]], delta)
             self.points = self.points + curve_segment.get_points()
@@ -226,7 +226,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         self.ctrl_points = ctrl_points
         self.points = []
         self.normalized_points = []
-        self.type = "curve"
+        self.type = "C2D-"+str(len(ctrl_points))
         # calcular coeficientes a, b, c, d para x e y, usando C=Mbs*Gbs
         self.Mbs = numpy.array([[-1/6, 3/6, -3/6, 1/6],[3/6, -6/6, 3/6, 0],[-3/6, 0, 3/6, 0],[1/6, 4/6, 1/6, 0]])
         self.Mbs_inv = numpy.linalg.inv(self.Mbs)

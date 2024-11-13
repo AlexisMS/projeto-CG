@@ -5,7 +5,7 @@ from PySide6.QtWidgets import *
 
 from display_file import DisplayFile
 from window import Window
-from objects import WireFrame, Point, Curva2D_bezier, Curva2D_fwd_diff
+from objects import WireFrame, WireFrame3D, Point, Curva2D_bezier, Curva2D_fwd_diff
 from objhandler import ObjHandler
 from transform_functions import *
 from clipping_functions import *
@@ -72,10 +72,14 @@ class NewObjectWindow(QWidget):
         self.wireframe_points3D_label = QLabel("Número de pontos")
         self.wireframe_points3D = QSpinBox()
         self.wireframe_points3D.setMinimum(1)
+        self.wireframe_edges3D_label = QLabel("Número de arestas")
+        self.wireframe_edges3D = QSpinBox()
+        self.wireframe_edges3D.setMinimum(1)
         self.create_button_wireframe3D = QPushButton("Criar Objeto 3D")
         self.create_button_wireframe3D.clicked.connect(
             lambda: New3DObjectDialog(
                 self.wireframe_points3D.value(),
+                self.wireframe_edges3D.value(),
                 normalized_matrix,
                 self.type_button1_wireframe3D.isChecked(),
                 self.name_entry.text().upper()
@@ -86,7 +90,9 @@ class NewObjectWindow(QWidget):
         self.wireframe3D_layout.addWidget(self.type_button2_wireframe3D, 2, 2)
         self.wireframe3D_layout.addWidget(self.wireframe_points3D_label, 3, 1)
         self.wireframe3D_layout.addWidget(self.wireframe_points3D, 3, 2)
-        self.wireframe3D_layout.addWidget(self.create_button_wireframe3D, 4, 1, 1, 2)
+        self.wireframe3D_layout.addWidget(self.wireframe_edges3D_label, 4, 1)
+        self.wireframe3D_layout.addWidget(self.wireframe_edges3D, 4, 2)
+        self.wireframe3D_layout.addWidget(self.create_button_wireframe3D, 5, 1, 1, 2)
         self.wireframe3D.setLayout(self.wireframe3D_layout)
 
         # Informações para curva 2D
@@ -195,11 +201,21 @@ class New2DObjectDialog(NewDialog):
         self.points.append(Point(x, y))
 
 class New3DObjectDialog(NewDialog):
-    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
+    def __init__(self, n_points:int, n_edges:int, normalized_matrix:numpy.ndarray, type1:bool, name:str):
         super().__init__(n_points, normalized_matrix, type1, name)
         self.points = []
+        self.edges = []
+
         self.z_label = []
         self.z_coord = []
+
+        self.edge_init_label = []
+        self.edge_end_label = []
+        self.edge_init = []
+        self.edge_end = []
+
+        self.edge_layout = []
+        self.edge_widget = []
 
         for n in range(n_points): 
             self.x_label.append(QLabel("X"+str(n)))
@@ -218,6 +234,21 @@ class New3DObjectDialog(NewDialog):
             self.point_layout[n].addWidget(self.z_coord[n])
             self.point_widget.append(QWidget())
             self.point_widget[n].setLayout(self.point_layout[n])
+        
+        for n in range(n_edges):
+            self.edge_init_label.append(QLabel("Aresta {}:     Ponto Inicial".format(n)))
+            self.edge_init.append(QLineEdit())
+            self.edge_end_label.append(QLabel("Ponto Final"))
+            self.edge_end.append(QLineEdit())
+        for n in range(n_edges):
+            self.edge_layout.append(QHBoxLayout())
+            self.edge_layout[n].addWidget(self.edge_init_label[n])
+            self.edge_layout[n].addWidget(self.edge_init[n])
+            self.edge_layout[n].addWidget(self.edge_end_label[n])
+            self.edge_layout[n].addWidget(self.edge_end[n])
+            self.edge_widget.append(QWidget())
+            self.edge_widget[n].setLayout(self.edge_layout[n])
+
         self.create_object_button = QPushButton("Criar objeto 3D")
         self.create_object_button.clicked.connect(
             lambda : self.new_object(normalized_matrix, type1, name)
@@ -226,6 +257,8 @@ class New3DObjectDialog(NewDialog):
         self.layouts = QVBoxLayout()
         for n in range(n_points):
             self.layouts.addWidget(self.point_widget[n])
+        for n in range(n_edges):
+            self.layouts.addWidget(self.edge_widget[n])
         self.layouts.addWidget(self.create_object_button)
         self.setLayout(self.layouts)
     
@@ -233,18 +266,26 @@ class New3DObjectDialog(NewDialog):
     def new_object(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
+        empty_edge = False
         for i in range(len(self.x_coord)):
-            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "":
+            if self.x_coord[i].text() == "" or self.y_coord[i].text() == "" or self.z_coord[i].text() == "":
                 empty_coord = True
                 break
+        # Checa se há valor vazio em alguma aresta conectada
+        for i in range(len(self.edge_end_label)):
+            if self.edge_init[i].text() == "" or self.edge_end[i].text() == "":
+                empty_edge = True
+                break
         # Cancela criação de objetos se não cumprir algum requisito
-        if name == "" or empty_coord:
-            logging.info("wireframe 3D não criado: nome e pontos precisam ser preenchidos")
+        if name == "" or empty_coord or empty_edge:
+            logging.info("wireframe 3D não criado: nome, pontos e arestas precisam ser preenchidos")
             self.close()
         else:
             for n in range(len(self.x_coord)):
-                self.new_Point(n)
-            obj = WireFrame(name, self.points)
+                self.new_point(n)
+            for n in range(len(self.edge_init)):
+                self.new_edge(self.edge_init[n].value(), self.edge_end[n].value())
+            obj = WireFrame3D(name, self.points, self.edges)
             obj.apply_normalized(normalized_matrix)
             screen.draw_object(obj)
             screen.update_objects_names()
@@ -255,7 +296,11 @@ class New3DObjectDialog(NewDialog):
             self.close()
     
     @Slot()
-    def new_Point(self, n: int) -> None:
+    def new_edge(self, v1:int, v2:int) -> None:
+        self.edges.append(self.points[v1], self.points[v2])
+    
+    @Slot()
+    def new_point(self, n: int) -> None:
         x = int(self.x_coord[n].text())
         y = int(self.y_coord[n].text())
         self.points.append(Point(x, y))
@@ -622,60 +667,121 @@ class MainWindow(QMainWindow):
     def draw(self, obj: WireFrame) -> None:
         self.pen.setWidth(1)
         self.pen.setColor(QColor("white"))
-        if obj.get_type() == '1':
-            point = obj.get_normalized_points()[0]
-            visible, point = clip_point(point)
-            if visible:
-                transformed_point = self.viewport_transform(point)
-                self.scene.addLine(
-                    transformed_point.get_x(), transformed_point.get_y(),
-                    transformed_point.get_x(), transformed_point.get_y(), self.pen)
-        elif obj.get_type() == '2':
-            first_point = obj.get_normalized_points()[0]
-            last_point = obj.get_normalized_points()[-1]
-            # Clipagem Liang-Barsky
-            if self.clipping_button_1.isChecked():
-                visible, first_point, last_point = liang_barsky(first_point, last_point)
+        obj_type = obj.get_type()
+
+        # Objetos 2D
+        if "2D" in obj_type:
+            if obj_type[-1] == '1':
+                point = obj.get_normalized_points()[0]
+                visible, point = clip_point(point)
                 if visible:
+                    transformed_point = self.viewport_transform(point)
+                    self.scene.addLine(
+                        transformed_point.get_x(), transformed_point.get_y(),
+                        transformed_point.get_x(), transformed_point.get_y(), self.pen)
+            elif obj_type[-1] == '2':
+                first_point = obj.get_normalized_points()[0]
+                last_point = obj.get_normalized_points()[-1]
+                # Clipagem Liang-Barsky
+                if self.clipping_button_1.isChecked():
+                    visible, first_point, last_point = liang_barsky(first_point, last_point)
+                    if visible:
+                        first_transformed_point = self.viewport_transform(first_point)
+                        last_transformed_point = self.viewport_transform(last_point)
+                        self.scene.addLine(
+                            first_transformed_point.get_x(), first_transformed_point.get_y(),
+                            last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+                # Clipagem Cohen-Sutherland
+                elif self.clipping_button_2.isChecked():
+                    visible, first_point, last_point = cohen_sutherland(first_point, last_point)
+                    if visible:
+                        first_transformed_point = self.viewport_transform(first_point)
+                        last_transformed_point = self.viewport_transform(last_point)
+                        self.scene.addLine(
+                            first_transformed_point.get_x(), first_transformed_point.get_y(),
+                            last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+                else:
                     first_transformed_point = self.viewport_transform(first_point)
                     last_transformed_point = self.viewport_transform(last_point)
                     self.scene.addLine(
                         first_transformed_point.get_x(), first_transformed_point.get_y(),
                         last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-            # Clipagem Cohen-Sutherland
-            elif self.clipping_button_2.isChecked():
-                visible, first_point, last_point = cohen_sutherland(first_point, last_point)
-                if visible:
-                    first_transformed_point = self.viewport_transform(first_point)
-                    last_transformed_point = self.viewport_transform(last_point)
-                    self.scene.addLine(
-                        first_transformed_point.get_x(), first_transformed_point.get_y(),
-                        last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+            # Clipagem Weiler-Atherton
             else:
+                points = weiler_atherton(obj.get_normalized_points())
+                first_point = points[0]
+                last_point = points[-1]
                 first_transformed_point = self.viewport_transform(first_point)
                 last_transformed_point = self.viewport_transform(last_point)
-                self.scene.addLine(
-                    first_transformed_point.get_x(), first_transformed_point.get_y(),
-                    last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-        # Clipagem Weiler-Atherton
+                for i in range(len(points)-1):
+                    f_point = points[i]
+                    l_point = points[i+1]
+                    f_transformed_point = self.viewport_transform(f_point)
+                    l_transformed_point = self.viewport_transform(l_point)
+                    self.scene.addLine(
+                    f_transformed_point.get_x(), f_transformed_point.get_y(),
+                    l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
+                if "C" not in obj_type:
+                    self.scene.addLine(
+                        last_transformed_point.get_x(), last_transformed_point.get_y(),
+                        first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
+        # Objetos 3D
         else:
-            points = weiler_atherton(obj.get_normalized_points())
-            first_point = points[0]
-            last_point = points[-1]
-            first_transformed_point = self.viewport_transform(first_point)
-            last_transformed_point = self.viewport_transform(last_point)
-            for i in range(len(points)-1):
-                f_point = points[i]
-                l_point = points[i+1]
-                f_transformed_point = self.viewport_transform(f_point)
-                l_transformed_point = self.viewport_transform(l_point)
-                self.scene.addLine(
-                f_transformed_point.get_x(), f_transformed_point.get_y(),
-                l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
-            if obj.get_type() != "curve":
-                self.scene.addLine(
-                    last_transformed_point.get_x(), last_transformed_point.get_y(),
-                    first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
+            pass
+        # if obj_type == 'WF2D-1':
+        #     point = obj.get_normalized_points()[0]
+        #     visible, point = clip_point(point)
+        #     if visible:
+        #         transformed_point = self.viewport_transform(point)
+        #         self.scene.addLine(
+        #             transformed_point.get_x(), transformed_point.get_y(),
+        #             transformed_point.get_x(), transformed_point.get_y(), self.pen)
+        # elif obj_type == 'WF2D-2':
+        #     first_point = obj.get_normalized_points()[0]
+        #     last_point = obj.get_normalized_points()[-1]
+        #     # Clipagem Liang-Barsky
+        #     if self.clipping_button_1.isChecked():
+        #         visible, first_point, last_point = liang_barsky(first_point, last_point)
+        #         if visible:
+        #             first_transformed_point = self.viewport_transform(first_point)
+        #             last_transformed_point = self.viewport_transform(last_point)
+        #             self.scene.addLine(
+        #                 first_transformed_point.get_x(), first_transformed_point.get_y(),
+        #                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+        #     # Clipagem Cohen-Sutherland
+        #     elif self.clipping_button_2.isChecked():
+        #         visible, first_point, last_point = cohen_sutherland(first_point, last_point)
+        #         if visible:
+        #             first_transformed_point = self.viewport_transform(first_point)
+        #             last_transformed_point = self.viewport_transform(last_point)
+        #             self.scene.addLine(
+        #                 first_transformed_point.get_x(), first_transformed_point.get_y(),
+        #                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+        #     else:
+        #         first_transformed_point = self.viewport_transform(first_point)
+        #         last_transformed_point = self.viewport_transform(last_point)
+        #         self.scene.addLine(
+        #             first_transformed_point.get_x(), first_transformed_point.get_y(),
+        #             last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+        # # Clipagem Weiler-Atherton
+        # elif "WF2D" in obj_type and int(obj_type[-1]) >= 3:
+        #     points = weiler_atherton(obj.get_normalized_points())
+        #     first_point = points[0]
+        #     last_point = points[-1]
+        #     first_transformed_point = self.viewport_transform(first_point)
+        #     last_transformed_point = self.viewport_transform(last_point)
+        #     for i in range(len(points)-1):
+        #         f_point = points[i]
+        #         l_point = points[i+1]
+        #         f_transformed_point = self.viewport_transform(f_point)
+        #         l_transformed_point = self.viewport_transform(l_point)
+        #         self.scene.addLine(
+        #         f_transformed_point.get_x(), f_transformed_point.get_y(),
+        #         l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
+        #     if obj.get_type() != "curve":
+        #         self.scene.addLine(
+        #             last_transformed_point.get_x(), last_transformed_point.get_y(),
+        #             first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
     
     # Desenha um objeto
     def draw_object(self, obj: WireFrame) -> None:
