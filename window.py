@@ -27,6 +27,7 @@ class Window():
         height = self.ymax - self.ymin
         widht = self.xmax - self.xmin
         self.normalization_matrix = build_normalization_matrix(height, widht, self.shift, self.angle)
+        self.normalization_matrix3D = build_normalization_matrix3D(height, widht, self.shift, self.angle)
 
     # Defino o ângulo de rotação
     def set_angle(self, angle) -> None:

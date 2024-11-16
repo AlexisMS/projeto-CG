@@ -39,6 +39,13 @@ def transform_basic_rotation(angle: float) -> numpy.ndarray:
     return rotation
 
 # ==== OPERAÇÕES 3D =====
+def build_normalization_matrix3D(height:float, widht: float, shift: Point, angle: float) -> numpy.ndarray:
+    # translation = transform_translate_3d(shift.get_x(), shift.get_y())
+    # rotation = transform_basic_rotation_3d(angle)
+    # scaling = transform_basic_scaling_3d(2/widht, 2/height)
+    # result = functools.reduce(numpy.dot, [translation, rotation, scaling])
+    # return result
+    pass
 
 def transform_translate_3d(dx: float, dy: float, dz: float) -> numpy.ndarray:
     translation = numpy.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [dx, dy, dz, 1]])
