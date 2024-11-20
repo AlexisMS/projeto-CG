@@ -21,7 +21,7 @@ class QTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 class NewObjectWindow(QWidget):
-    def __init__(self, normalized_matrix: numpy.ndarray):
+    def __init__(self, windows:Window):
         super().__init__()
         self.setWindowTitle("Criação de Objetos")
         self.layouts = QGridLayout()
@@ -49,7 +49,7 @@ class NewObjectWindow(QWidget):
         self.create_button_wireframe2D.clicked.connect(
             lambda: New2DObjectDialog(
                 self.wireframe_points2D.value(),
-                normalized_matrix,
+                windows,
                 self.type_button1_wireframe2D.isChecked(),
                 self.name_entry.text().upper()
                 ).show()
@@ -80,7 +80,7 @@ class NewObjectWindow(QWidget):
             lambda: New3DObjectDialog(
                 self.wireframe_points3D.value(),
                 self.wireframe_edges3D.value(),
-                normalized_matrix,
+                windows,
                 self.type_button1_wireframe3D.isChecked(),
                 self.name_entry.text().upper()
                 ).show()
@@ -109,7 +109,7 @@ class NewObjectWindow(QWidget):
         self.create_button_curve2D.clicked.connect(
             lambda: New2DCurveDialog(
                 self.curve_points2D.value(),
-                normalized_matrix,
+                windows,
                 self.type_button1_curve2D.isChecked(),
                 self.name_entry.text().upper()
                 ).show())
@@ -129,7 +129,7 @@ class NewObjectWindow(QWidget):
         self.setLayout(self.layouts)
 
 class NewDialog(QWidget):
-    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
+    def __init__(self, n_points:int, windows:Window, type1:bool, name:str):
         super().__init__()
         self.setWindowTitle("Inserção Pontos")
 
@@ -141,8 +141,8 @@ class NewDialog(QWidget):
         self.point_widget = []
 
 class New2DObjectDialog(NewDialog):
-    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
-        super().__init__(n_points, normalized_matrix, type1, name)
+    def __init__(self, n_points:int, windows:Window, type1:bool, name:str):
+        super().__init__(n_points, windows, type1, name)
         self.points = []
 
         for n in range(n_points): 
@@ -160,7 +160,7 @@ class New2DObjectDialog(NewDialog):
             self.point_widget[n].setLayout(self.point_layout[n])
         self.create_object_button = QPushButton("Criar objeto 2D")
         self.create_object_button.clicked.connect(
-            lambda : self.new_object(normalized_matrix, type1, name)
+            lambda : self.new_object(windows, type1, name)
             )
 
         self.layouts = QVBoxLayout()
@@ -170,7 +170,7 @@ class New2DObjectDialog(NewDialog):
         self.setLayout(self.layouts)
     
     @Slot()
-    def new_object(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
+    def new_object(self, windows:Window, type1: bool, name: str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -185,7 +185,8 @@ class New2DObjectDialog(NewDialog):
             for n in range(len(self.x_coord)):
                 self.new_Point(n)
             obj = WireFrame(name, self.points)
-            obj.apply_normalized(normalized_matrix)
+            obj.apply_normalized(windows.get_normalization_matrix(),
+                                 windows.get_ortogonal_projection_matrix())
             screen.draw_object(obj)
             screen.update_objects_names()
             message = ("wireframe "+obj.get_name()+"<"
@@ -201,8 +202,8 @@ class New2DObjectDialog(NewDialog):
         self.points.append(Point(x, y))
 
 class New3DObjectDialog(NewDialog):
-    def __init__(self, n_points:int, n_edges:int, normalized_matrix:numpy.ndarray, type1:bool, name:str):
-        super().__init__(n_points, normalized_matrix, type1, name)
+    def __init__(self, n_points:int, n_edges:int, windows:Window, type1:bool, name:str):
+        super().__init__(n_points, windows, type1, name)
         self.points = []
         self.edges = []
 
@@ -235,35 +236,37 @@ class New3DObjectDialog(NewDialog):
             self.point_widget.append(QWidget())
             self.point_widget[n].setLayout(self.point_layout[n])
         
-        for n in range(n_edges):
-            self.edge_init_label.append(QLabel("Aresta {}:     Ponto Inicial".format(n)))
-            self.edge_init.append(QLineEdit())
-            self.edge_end_label.append(QLabel("Ponto Final"))
-            self.edge_end.append(QLineEdit())
-        for n in range(n_edges):
-            self.edge_layout.append(QHBoxLayout())
-            self.edge_layout[n].addWidget(self.edge_init_label[n])
-            self.edge_layout[n].addWidget(self.edge_init[n])
-            self.edge_layout[n].addWidget(self.edge_end_label[n])
-            self.edge_layout[n].addWidget(self.edge_end[n])
-            self.edge_widget.append(QWidget())
-            self.edge_widget[n].setLayout(self.edge_layout[n])
+        if n_points > 3:
+            for n in range(n_edges):
+                self.edge_init_label.append(QLabel("Aresta {}:     Ponto Inicial".format(n)))
+                self.edge_init.append(QLineEdit())
+                self.edge_end_label.append(QLabel("Ponto Final"))
+                self.edge_end.append(QLineEdit())
+            for n in range(n_edges):
+                self.edge_layout.append(QHBoxLayout())
+                self.edge_layout[n].addWidget(self.edge_init_label[n])
+                self.edge_layout[n].addWidget(self.edge_init[n])
+                self.edge_layout[n].addWidget(self.edge_end_label[n])
+                self.edge_layout[n].addWidget(self.edge_end[n])
+                self.edge_widget.append(QWidget())
+                self.edge_widget[n].setLayout(self.edge_layout[n])
 
         self.create_object_button = QPushButton("Criar objeto 3D")
         self.create_object_button.clicked.connect(
-            lambda : self.new_object(normalized_matrix, type1, name)
+            lambda : self.new_object(windows, type1, name)
             )
 
         self.layouts = QVBoxLayout()
         for n in range(n_points):
             self.layouts.addWidget(self.point_widget[n])
-        for n in range(n_edges):
-            self.layouts.addWidget(self.edge_widget[n])
+        if n_points > 3:
+            for n in range(n_edges):
+                self.layouts.addWidget(self.edge_widget[n])
         self.layouts.addWidget(self.create_object_button)
         self.setLayout(self.layouts)
     
     @Slot()
-    def new_object(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
+    def new_object(self, windows:Window, type1:bool, name:str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         empty_edge = False
@@ -283,10 +286,12 @@ class New3DObjectDialog(NewDialog):
         else:
             for n in range(len(self.x_coord)):
                 self.new_point(n)
-            for n in range(len(self.edge_init)):
-                self.new_edge(self.edge_init[n].value(), self.edge_end[n].value())
+            if len(self.points) > 3:
+                for n in range(len(self.edge_init)):
+                    self.new_edge(int(self.edge_init[n].text()), int(self.edge_end[n].text()))
             obj = WireFrame3D(name, self.points, self.edges)
-            obj.apply_normalized(normalized_matrix)
+            obj.apply_normalized(windows.get_normalization_matrix(),
+                                 windows.get_ortogonal_projection_matrix())
             screen.draw_object(obj)
             screen.update_objects_names()
             message = ("wireframe "+obj.get_name()+"<"
@@ -297,17 +302,20 @@ class New3DObjectDialog(NewDialog):
     
     @Slot()
     def new_edge(self, v1:int, v2:int) -> None:
-        self.edges.append(self.points[v1], self.points[v2])
+        self.edges.append(self.points[v1])
+        self.edges.append(self.points[v2])
     
     @Slot()
     def new_point(self, n: int) -> None:
         x = int(self.x_coord[n].text())
         y = int(self.y_coord[n].text())
-        self.points.append(Point(x, y))
+        z = int(self.z_coord[n].text())
+        print(x, y, z)
+        self.points.append(Point3D(x, y, z))
 
 class New2DCurveDialog(NewDialog):
-    def __init__(self, n_points: int, normalized_matrix: numpy.ndarray, type1: bool, name: str):
-        super().__init__(n_points, normalized_matrix, type1, name)
+    def __init__(self, n_points: int, windows:Window, type1: bool, name: str):
+        super().__init__(n_points, windows, type1, name)
         self.ctrl_points = []
 
         if type1:
@@ -330,7 +338,7 @@ class New2DCurveDialog(NewDialog):
             self.point_widget[n].setLayout(self.point_layout[n])
         self.create_object_button = QPushButton("Criar Curva 2D")
         self.create_object_button.clicked.connect(
-            lambda : self.new_Curve(normalized_matrix, type1, name)
+            lambda : self.new_Curve(windows, type1, name)
             )
         
         self.layouts = QVBoxLayout()
@@ -346,7 +354,7 @@ class New2DCurveDialog(NewDialog):
         self.ctrl_points.append(Point(x, y))
     
     @Slot()
-    def new_Curve(self, normalized_matrix: numpy.ndarray, type1: bool, name: str) -> None:
+    def new_Curve(self, windows:Window, type1:bool, name:str) -> None:
         # Checa se há valor vazio em alguma coordenada submetida
         empty_coord = False
         for i in range(len(self.x_coord)):
@@ -364,7 +372,8 @@ class New2DCurveDialog(NewDialog):
                 obj = Curva2D_bezier(name, self.ctrl_points, 20)
             else:
                 obj = Curva2D_fwd_diff(name, self.ctrl_points, 0.1)                
-            obj.apply_normalized(normalized_matrix)
+            obj.apply_normalized(windows.get_normalization_matrix(),
+                                 windows.get_ortogonal_projection_matrix())
             screen.draw_object(obj)
             screen.update_objects_names()
             message = ("wireframe "+obj.get_name()+"<"
@@ -374,17 +383,17 @@ class New2DCurveDialog(NewDialog):
             self.close()
 
 class SubWindows():
-    def open_new_object_window(self, normalized_matrix: numpy.ndarray) -> None:
-        self.new_window = NewObjectWindow(normalized_matrix)
+    def open_new_object_window(self, windows:Window) -> None:
+        self.new_window = NewObjectWindow(windows)
         self.new_window.show()
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.windows = Window(-380,-280,380,280, DisplayFile()) # Window
+        self.windows = Window(-380,-280,-380,380,280,380,0,0,DisplayFile()) # Window
         self.subWindows = SubWindows() # Janelas Extras
         self.scene = QGraphicsScene() # Cenário
-        self.scene.setBackgroundBrush(QColor('grey'))
+        self.scene.setBackgroundBrush(QColor('white'))
         self.viewport = QGraphicsView(self.scene) # Viewport
         self.viewport.setFixedSize(800,600)
         self.viewport.setMinimumHeight(0)
@@ -417,7 +426,7 @@ class MainWindow(QMainWindow):
         self.object_names = QListWidget()
         self.create_object_button = QPushButton("Novo Objeto")
         self.create_object_button.clicked.connect(
-            lambda: self.subWindows.open_new_object_window(self.windows.get_normalization_matrix())
+            lambda: self.subWindows.open_new_object_window(self.windows)
             )
         self.objects_layout.addWidget(self.create_object_button)
         self.objects_layout.addWidget(self.object_names)
@@ -434,24 +443,43 @@ class MainWindow(QMainWindow):
         self.zoom_layout.addWidget(self.zoom_out_button)
         self.zoom_menu.setLayout(self.zoom_layout)
 
-        # Interface de navegação
+        # Interface de navegação da window
         self.nav_menu = QGroupBox("Navegação")
-        self.nav_layout = QGridLayout()
-        self.nav_left_button = QPushButton("esquerda")
-        self.nav_right_button = QPushButton("direita")
-        self.nav_up_button = QPushButton("cima")
-        self.nav_down_button = QPushButton("baixo")
-        self.nav_center_button = QPushButton("centro")
-        self.nav_left_button.clicked.connect(self.nav_left)
-        self.nav_right_button.clicked.connect(self.nav_right)
-        self.nav_up_button.clicked.connect(self.nav_up)
-        self.nav_down_button.clicked.connect(self.nav_down)
-        self.nav_center_button.clicked.connect(self.nav_center)
-        self.nav_layout.addWidget(self.nav_up_button, 1, 2)
-        self.nav_layout.addWidget(self.nav_left_button, 2, 1)
-        self.nav_layout.addWidget(self.nav_right_button, 2, 3)
-        self.nav_layout.addWidget(self.nav_down_button, 3, 2)
-        self.nav_layout.addWidget(self.nav_center_button, 2, 2)
+        self.nav_layout = QHBoxLayout()
+        self.desl_menu = QGroupBox("Deslocamento")
+        self.desl_layout = QGridLayout()
+        self.desl_left_button = QPushButton("esquerda")
+        self.desl_right_button = QPushButton("direita")
+        self.desl_up_button = QPushButton("cima")
+        self.desl_down_button = QPushButton("baixo")
+        self.desl_left_button.clicked.connect(self.desl_left)
+        self.desl_right_button.clicked.connect(self.desl_right)
+        self.desl_up_button.clicked.connect(self.desl_up)
+        self.desl_down_button.clicked.connect(self.desl_down)
+        self.desl_layout.addWidget(self.desl_up_button, 1, 1, 1, 2, Qt.AlignCenter)
+        self.desl_layout.addWidget(self.desl_left_button, 2, 1)
+        self.desl_layout.addWidget(self.desl_right_button, 2, 2)
+        self.desl_layout.addWidget(self.desl_down_button, 3, 1, 1, 2, Qt.AlignCenter)
+        self.desl_menu.setLayout(self.desl_layout)
+        self.nav_layout.addWidget(self.desl_menu)
+
+        self.rot_menu = QGroupBox("Rotação")
+        self.rot_layout = QGridLayout()
+        self.rot_left_button = QPushButton("esquerda")
+        self.rot_right_button = QPushButton("direita")
+        self.rot_up_button = QPushButton("cima")
+        self.rot_down_button = QPushButton("baixo")
+        self.rot_left_button.clicked.connect(self.rot_left)
+        self.rot_right_button.clicked.connect(self.rot_right)
+        self.rot_up_button.clicked.connect(self.rot_up)
+        self.rot_down_button.clicked.connect(self.rot_down)
+        self.rot_layout.addWidget(self.rot_up_button, 1, 1, 1, 2, Qt.AlignCenter)
+        self.rot_layout.addWidget(self.rot_left_button, 2, 1)
+        self.rot_layout.addWidget(self.rot_right_button, 2, 2)
+        self.rot_layout.addWidget(self.rot_down_button, 3, 1, 1, 2, Qt.AlignCenter)
+        self.rot_menu.setLayout(self.rot_layout)
+
+        self.nav_layout.addWidget(self.rot_menu)
         self.nav_menu.setLayout(self.nav_layout)
 
         # Interface das transformações
@@ -503,12 +531,12 @@ class MainWindow(QMainWindow):
         self.rotate_object_button.clicked.connect(self.rotate_object)
         self.rotate_point_button = QPushButton("ponto")
         self.rotate_point_button.clicked.connect(self.rotate_point)
-        self.rotate_window_button = QPushButton("janela")
-        self.rotate_window_button.clicked.connect(self.rotate_window)
+        # self.rotate_window_button = QPushButton("janela")
+        # self.rotate_window_button.clicked.connect(self.rotate_window)
         self.rotate_layout.addWidget(self.rotate_world_button, 1, 1)
         self.rotate_layout.addWidget(self.rotate_object_button, 1, 2)
         self.rotate_layout.addWidget(self.rotate_point_button, 1, 3)
-        self.rotate_layout.addWidget(self.rotate_window_button, 2, 1, 1, 3)
+        # self.rotate_layout.addWidget(self.rotate_window_button, 2, 1, 1, 3)
         self.rotate_menu.setLayout(self.rotate_layout)
         self.transform_layout.addWidget(self.rotate_menu)
         self.transform_menu.setLayout(self.transform_layout)
@@ -586,19 +614,37 @@ class MainWindow(QMainWindow):
 
     # Desenha as linhas x e y
     def draw_default_forms(self) -> None:
-        line1 = WireFrame("line1",
-                          [Point(-10000, self.windows.get_center().get_y()),
-                           Point(10000, self.windows.get_center().get_y())])
-        line1.apply_normalized(self.windows.get_normalization_matrix())
-        line2 = WireFrame("line2",
-                          [Point(self.windows.get_center().get_x(), -10000),
-                           Point(self.windows.get_center().get_x(), 10000)])
-        line2.apply_normalized(self.windows.get_normalization_matrix())
+        line1 = WireFrame3D("linex",
+                          [Point3D(-10000, self.windows.get_center().get_y(), 0),
+                           Point3D(10000, self.windows.get_center().get_y(), 0)],
+                           [])
+        line1.apply_normalized(
+            self.windows.get_normalization_matrix(),
+            self.windows.get_ortogonal_projection_matrix())
+        line2 = WireFrame3D("liney",
+                          [Point3D(-10000, -10000, 0),
+                           Point3D(10000, 10000, 0)],
+                           [])
+        line2.apply_normalized(
+            self.windows.get_normalization_matrix(),
+            self.windows.get_ortogonal_projection_matrix())
+        line3 = WireFrame3D("linez",
+                          [Point3D(self.windows.get_center().get_x(), self.windows.get_center().get_y(), -10000),
+                           Point3D(self.windows.get_center().get_x(), self.windows.get_center().get_y(), 10000)],
+                           [])
+        line3.apply_normalized(
+            self.windows.get_normalization_matrix(),
+            self.windows.get_ortogonal_projection_matrix())
         self.pen.setWidth(1)
-        self.pen.setColor(QColor("white"))
+        self.pen.setColor(QColor("grey"))
         self.scene.addRect(0, 0, 800, 600, self.pen)
+        self.pen.setColor(QColor("red"))
         self.draw(line1)
+        self.pen.setColor(QColor("blue"))
         self.draw(line2)
+        self.pen.setColor(QColor("green"))
+        self.draw(line3)
+        self.pen.setColor(QColor("grey"))
 
     # Aumenta o zoom
     def zoom_In(self) -> None:
@@ -616,46 +662,73 @@ class MainWindow(QMainWindow):
             self.viewport.scale(0.9, 0.9)
             logging.info('zoom out de 10%')
 
-    # Navega para o centro
-    def nav_center(self) -> None:
-        shift = self.windows.get_shift()
-        shift.set_x(0)
-        shift.set_y(0)
-        self.windows.update_normalization_matrix()
-        self.redraw_objects()
-        logging.info('window centralizada')
-
-    # Navega para esquerda
-    def nav_left(self) -> None:
+    # Desloca para esquerda
+    def desl_left(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() - 20)
         self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
         self.redraw_objects()
         logging.info('window deslocada para esquerda')
 
-    # Navega para direita
-    def nav_right(self) -> None:
+    # Desloca para direita
+    def desl_right(self) -> None:
         shift = self.windows.get_shift()
         shift.set_x(shift.get_x() + 20)
         self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
         self.redraw_objects()
         logging.info('window deslocada para direita')
 
-    # Navega para cima
-    def nav_up(self) -> None:
+    # Desloca para cima
+    def desl_up(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() + 15)
         self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
         self.redraw_objects()
         logging.info('window deslocada para cima')
 
-    # Navega para baixo
-    def nav_down(self) -> None:
+    # Desloca para baixo
+    def desl_down(self) -> None:
         shift = self.windows.get_shift()
         shift.set_y(shift.get_y() - 15)
         self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
         self.redraw_objects()
         logging.info('window deslocada para baixo')
+    
+    # Rotaciona para esquerda
+    def rot_left(self) -> None:
+        self.windows.set_u(self.windows.get_u()+15)
+        self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
+        self.redraw_objects()
+        logging.info('window rotacionada para esquerda')
+
+    # Rotaciona para direita
+    def rot_right(self) -> None:
+        self.windows.set_u(self.windows.get_u()-15)
+        self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
+        self.redraw_objects()
+        logging.info('window rotacionada para direita')
+
+    # Rotaciona para cima
+    def rot_up(self) -> None:
+        self.windows.set_v(self.windows.get_v()-15)
+        self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
+        self.redraw_objects()
+        logging.info('window rotacionada para cima')
+
+    # Rotaciona para baixo
+    def rot_down(self) -> None:
+        self.windows.set_v(self.windows.get_v()+15)
+        self.windows.update_normalization_matrix()
+        self.windows.update_ortogonal_projection_matrix()
+        self.redraw_objects()
+        logging.info('window rotacionada para baixo')
 
     # Atualiza a lista de objetos
     def update_objects_names(self) -> None:
@@ -664,9 +737,9 @@ class MainWindow(QMainWindow):
             self.object_names.addItem(QListWidgetItem(obj.get_name()))
     
     # Desenha um objeto
-    def draw(self, obj: WireFrame) -> None:
+    def draw(self, obj) -> None:
         self.pen.setWidth(1)
-        self.pen.setColor(QColor("white"))
+        # self.pen.setColor(QColor("white"))
         obj_type = obj.get_type()
 
         # Objetos 2D
@@ -727,62 +800,71 @@ class MainWindow(QMainWindow):
                         first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
         # Objetos 3D
         else:
-            pass
-        # if obj_type == 'WF2D-1':
-        #     point = obj.get_normalized_points()[0]
-        #     visible, point = clip_point(point)
-        #     if visible:
-        #         transformed_point = self.viewport_transform(point)
-        #         self.scene.addLine(
-        #             transformed_point.get_x(), transformed_point.get_y(),
-        #             transformed_point.get_x(), transformed_point.get_y(), self.pen)
-        # elif obj_type == 'WF2D-2':
-        #     first_point = obj.get_normalized_points()[0]
-        #     last_point = obj.get_normalized_points()[-1]
-        #     # Clipagem Liang-Barsky
-        #     if self.clipping_button_1.isChecked():
-        #         visible, first_point, last_point = liang_barsky(first_point, last_point)
-        #         if visible:
-        #             first_transformed_point = self.viewport_transform(first_point)
-        #             last_transformed_point = self.viewport_transform(last_point)
-        #             self.scene.addLine(
-        #                 first_transformed_point.get_x(), first_transformed_point.get_y(),
-        #                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-        #     # Clipagem Cohen-Sutherland
-        #     elif self.clipping_button_2.isChecked():
-        #         visible, first_point, last_point = cohen_sutherland(first_point, last_point)
-        #         if visible:
-        #             first_transformed_point = self.viewport_transform(first_point)
-        #             last_transformed_point = self.viewport_transform(last_point)
-        #             self.scene.addLine(
-        #                 first_transformed_point.get_x(), first_transformed_point.get_y(),
-        #                 last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-        #     else:
-        #         first_transformed_point = self.viewport_transform(first_point)
-        #         last_transformed_point = self.viewport_transform(last_point)
-        #         self.scene.addLine(
-        #             first_transformed_point.get_x(), first_transformed_point.get_y(),
-        #             last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
-        # # Clipagem Weiler-Atherton
-        # elif "WF2D" in obj_type and int(obj_type[-1]) >= 3:
-        #     points = weiler_atherton(obj.get_normalized_points())
-        #     first_point = points[0]
-        #     last_point = points[-1]
-        #     first_transformed_point = self.viewport_transform(first_point)
-        #     last_transformed_point = self.viewport_transform(last_point)
-        #     for i in range(len(points)-1):
-        #         f_point = points[i]
-        #         l_point = points[i+1]
-        #         f_transformed_point = self.viewport_transform(f_point)
-        #         l_transformed_point = self.viewport_transform(l_point)
-        #         self.scene.addLine(
-        #         f_transformed_point.get_x(), f_transformed_point.get_y(),
-        #         l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
-        #     if obj.get_type() != "curve":
-        #         self.scene.addLine(
-        #             last_transformed_point.get_x(), last_transformed_point.get_y(),
-        #             first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
-    
+            if obj_type == 'WF3D-1':
+                point = obj.get_normalized_points()[0]
+                visible, point = clip_point(point)
+                if visible:
+                    transformed_point = self.viewport_transform(point)
+                    self.scene.addLine(
+                        transformed_point.get_x(), transformed_point.get_y(),
+                        transformed_point.get_x(), transformed_point.get_y(), self.pen)
+            elif obj_type == 'WF3D-2':
+                first_point = obj.get_normalized_points()[0]
+                last_point = obj.get_normalized_points()[-1]
+                # Clipagem Liang-Barsky
+                if self.clipping_button_1.isChecked():
+                    visible, first_point, last_point = liang_barsky(first_point, last_point)
+                    if visible:
+                        first_transformed_point = self.viewport_transform(first_point)
+                        last_transformed_point = self.viewport_transform(last_point)
+                        self.scene.addLine(
+                            first_transformed_point.get_x(), first_transformed_point.get_y(),
+                            last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+                # Clipagem Cohen-Sutherland
+                elif self.clipping_button_2.isChecked():
+                    visible, first_point, last_point = cohen_sutherland(first_point, last_point)
+                    if visible:
+                        first_transformed_point = self.viewport_transform(first_point)
+                        last_transformed_point = self.viewport_transform(last_point)
+                        self.scene.addLine(
+                            first_transformed_point.get_x(), first_transformed_point.get_y(),
+                            last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+                else:
+                    first_transformed_point = self.viewport_transform(first_point)
+                    last_transformed_point = self.viewport_transform(last_point)
+                    self.scene.addLine(
+                        first_transformed_point.get_x(), first_transformed_point.get_y(),
+                        last_transformed_point.get_x(), last_transformed_point.get_y(), self.pen)
+            # Clipagem Weiler-Atherton
+            elif "WF3D" in obj_type and int(obj_type[-1]) >= 3:
+                points = weiler_atherton(obj.get_normalized_points())
+                edges = weiler_atherton(obj.get_normalized_edges())
+                first_point = points[0]
+                last_point = points[-1]
+                first_transformed_point = self.viewport_transform(first_point)
+                last_transformed_point = self.viewport_transform(last_point)
+                for i in range(len(points)-1):
+                    f_point = points[i]
+                    l_point = points[i+1]
+                    f_transformed_point = self.viewport_transform(f_point)
+                    l_transformed_point = self.viewport_transform(l_point)
+                    self.scene.addLine(
+                    f_transformed_point.get_x(), f_transformed_point.get_y(),
+                    l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
+                for i in range(0, len(edges)-1, 2):
+                    f_point = edges[i]
+                    l_point = edges[i+1]
+                    f_transformed_point = self.viewport_transform(f_point)
+                    l_transformed_point = self.viewport_transform(l_point)
+                    self.scene.addLine(
+                    f_transformed_point.get_x(), f_transformed_point.get_y(),
+                    l_transformed_point.get_x(), l_transformed_point.get_y(), self.pen)
+                if obj.get_type() != "curve":
+                    self.scene.addLine(
+                        last_transformed_point.get_x(), last_transformed_point.get_y(),
+                        first_transformed_point.get_x(), first_transformed_point.get_y(), self.pen)
+
+            
     # Desenha um objeto
     def draw_object(self, obj: WireFrame) -> None:
         self.draw(obj)
@@ -809,12 +891,14 @@ class MainWindow(QMainWindow):
     # Redesenha todos os objetos
     def redraw_objects(self) -> None:
         self.scene.clear()
+        self.windows.update_ortogonal_projection_matrix()
         self.windows.update_normalization_matrix()
         self.draw_default_forms()
         objects = self.windows.get_display_file().get_objects()
         for obj in objects:
             obj.clear_normalized_points()
-            obj.apply_normalized(self.windows.get_normalization_matrix())
+            obj.apply_normalized(self.windows.get_normalization_matrix(),
+                                 self.windows.get_ortogonal_projection_matrix())
             self.draw(obj)
 
     # Translada um objeto
@@ -894,13 +978,13 @@ class MainWindow(QMainWindow):
             logging.info("objeto" + obj.get_name() +
                          "rotacionado a partir do ponto (" +str(pivot_x)+","+str(pivot_y)+")")
 
-    # Rotaciona a janela
-    def rotate_window(self) -> None:
-        angle = float(self.angle_entry.text())
-        self.windows.set_angle(angle)
-        self.windows.update_normalization_matrix()
-        self.redraw_objects()
-        logging.info('window rotacionada')
+    # # Rotaciona a janela
+    # def rotate_window(self) -> None:
+    #     angle = float(self.angle_entry.text())
+    #     self.windows.set_angle(angle)
+    #     self.windows.update_normalization_matrix()
+    #     self.redraw_objects()
+    #     logging.info('window rotacionada')
 
     # Salva o arquivo de objetos
     def save_file(self, file_name: str, objects) -> None:

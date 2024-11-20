@@ -21,9 +21,8 @@ class Point():
         return "("+str(self.get_x())+","+str(self.get_y())+")"
     
 class Point3D(Point):
-    def __init__(self, x: float, y: float, z: float):
-        self.x = x
-        self.y = y
+    def __init__(self, x, y, z):
+        super().__init__(x, y)
         self.z = z
     
     def get_z(self) -> float:
@@ -44,33 +43,35 @@ class WireFrame():
         self.transform_matrix = numpy.identity(3)
         self.center = self.set_center()
 
-    # Limpa os pontos normalizados
-    def clear_normalized_points(self) -> None:
-        self.normalized_points.clear()
-
-    # Retorna os pontos normalizados
-    def get_normalized_points(self) -> list:
-        return self.normalized_points
-
     # Aplica a normalização dos pontos
-    def apply_normalized(self, normalized_matrix) -> None:
+    def apply_normalized(self, normalized_matrix, projection) -> None:
         for point in self.points:
-            point_matrix = numpy.array([point.get_x(), point.get_y(), 1])
+            point_matrix = numpy.array([point.get_x(), point.get_y(), 0, 1])
+            point_matrix = point_matrix.dot(projection)
+            point_matrix = numpy.array([point_matrix[0], point_matrix[1], 1])
             point_matrix = point_matrix.dot(normalized_matrix)
             normalized_point = Point(point_matrix[0], point_matrix[1])
             self.normalized_points.append(normalized_point)
     
-    # Retorna o nome
     def get_name(self) -> str:
         return self.name
     
-    # Retorna o tipo
     def get_type(self) -> str:
         return self.type
 
-    # Retorna os pontos
     def get_points(self) -> list:
         return self.points
+    
+    def get_center(self) -> Point:
+        return self.center
+    
+    # Retorna a matriz de transformação
+    def get_transform(self) -> numpy.ndarray:
+        return self.transform_matrix
+    
+    # Retorna os pontos normalizados
+    def get_normalized_points(self) -> list:
+        return self.normalized_points
 
     # Retorna os pontos em formato printavel
     def get_str_points(self) -> str:
@@ -78,6 +79,10 @@ class WireFrame():
         for p in self.points:
             str_point += "("+str(p.get_x())+","+str(p.get_y())+")"
         return str_point
+    
+    # Limpa os pontos normalizados
+    def clear_normalized_points(self) -> None:
+        self.normalized_points.clear()
     
     # Define o centro
     def set_center(self) -> Point:
@@ -90,14 +95,6 @@ class WireFrame():
         y = ysum/len(self.points)
         self.center = Point(x, y)
         return Point(x, y)
-    
-    # Retorna o centro
-    def get_center(self) -> Point:
-        return self.center
-    
-    # Retorna a matriz de transformação
-    def get_transform(self) -> numpy.ndarray:
-        return self.transform_matrix
     
     # Atualiza a matriz de transformação
     def update_transform(self, matrix: numpy.ndarray) -> None:
@@ -117,24 +114,15 @@ class WireFrame():
         self.set_center()
 
 class WireFrame3D(WireFrame):
-    def __init__(self, name: str, points: list[Point3D], edges: list[(Point3D, Point3D)]):
-        self.name = name
+    def __init__(self, name:str, points:Point3D, edges:list[(Point3D, Point3D)]):
+        super().__init__(name, points)
         self.type = "WF3D-"+str(len(points))
-        self.points = points
         self.edges = edges
-        self.normalized_points = []
-        self.transform_matrix = numpy.identity(4)
+        self.normalized_edges = []
         self.center = self.set_center()
     
-    def get_edges(self):
-        return self.edges
-
-    def apply_normalized(self, normalized_matrix) -> None:
-        for point in self.points:
-            point_matrix = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
-            point_matrix = point_matrix.dot(normalized_matrix)
-            normalized_point = Point(point_matrix[0], point_matrix[1], point_matrix[2])
-            self.normalized_points.append(normalized_point)
+    def get_normalized_edges(self):
+        return self.normalized_edges
 
     def get_str_points(self) -> str:
         str_point = ""
@@ -149,24 +137,26 @@ class WireFrame3D(WireFrame):
         for point in self.points:
             xsum = xsum + point.get_x()
             ysum = ysum + point.get_y()
-            zsum = zsum + point.get_z
+            zsum = zsum + point.get_z()
         x = xsum/len(self.points)
         y = ysum/len(self.points)
         z = zsum/len(self.points)
         self.center = Point3D(x, y, z)
-        return Point(x, y, z)
+        return Point3D(x, y, z)
     
-    def apply_transform(self) -> None: # lembrete de rodar reset_transform() depois
+    def apply_normalized(self, normalized_matrix, projection):
         for point in self.points:
-            point_matrix = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
-            point_matrix = point_matrix.dot(self.transform_matrix)
-            point.set_x(point_matrix[0])
-            point.set_y(point_matrix[1])
-            point.set_z(point_matrix[2])
-        self.set_center()
-
-    def reset_transform(self) -> None:
-        self.transform_matrix = numpy.identity(4)
+            point_matrix3D = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
+            point_matrix3D = point_matrix3D.dot(projection)
+            point_matrix = numpy.array([point_matrix3D[0], point_matrix3D[1], 1]).dot(normalized_matrix)
+            normalized_point = Point(point_matrix[0], point_matrix[1])
+            self.normalized_points.append(normalized_point)
+        for point in self.edges:
+            point_matrix3D = numpy.array([point.get_x(), point.get_y(), point.get_z(), 1])
+            point_matrix3D = point_matrix3D.dot(projection)
+            point_matrix = numpy.array([point_matrix3D[0], point_matrix3D[1], 1]).dot(normalized_matrix)
+            normalized_point = Point(point_matrix[0], point_matrix[1])
+            self.normalized_points.append(normalized_point)
 
 class Segment_Curva2D_bezier(WireFrame):
     def __init__(self, ctrl_points: list[Point], steps: int):
