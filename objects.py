@@ -186,7 +186,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
         x_old = x
         y_old = y
         #z_old = z
-        self.points.append(Point(float(x_old[-1]), float(y_old[-1])))
+        self.points.append(Point(float(x_old), float(y_old)))
         while(i<n):
             i += 1
             x += dx
@@ -198,7 +198,7 @@ class Segment_Curva2D_fwd_diff(WireFrame):
             #z += dz
             #dz += d2z
             #d2z += d3z
-            self.points.append(Point(float(x[-1]), float(y[-1])))
+            self.points.append(Point(float(x), float(y)))
             x_old = x
             y_old = y
             #z_old = z
