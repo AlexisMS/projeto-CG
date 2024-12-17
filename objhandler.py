@@ -40,7 +40,7 @@ class ObjHandler():
                 names.append(split[1])
             elif(line.startswith("v")):
                 split = line.split()
-                points.append(Point(int(split[1]),int(split[2])))
+                points.append(Point(float(split[1]),float(split[2])))
             elif(line.startswith("p") or line.startswith("l") or line.startswith("f")):
                 params.append(line)
         for position, new_obj_name in enumerate(names):
